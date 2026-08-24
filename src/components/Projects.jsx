@@ -27,7 +27,7 @@ const PROJECTS = [
     name: "Multimodal Deepfake Detection",
     tag: "final_year_project",
     confidence: 91,
-    stack: ["LLMs", "VLMs", "PyTorch"],
+    stack: ["VLMs", "PyTorch"],
     desc: "Detect-explain-judge pipeline (ExDDV-Judge), 80% smaller than baseline VLMs, runs on one consumer GPU.",
     href: null,
   },
