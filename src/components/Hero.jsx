@@ -89,8 +89,8 @@ export default function Hero() {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="mt-10 sm:mt-12 max-w-xl text-base sm:text-lg text-[var(--muted)] leading-relaxed"
         >
-          AI Engineer building computer vision and document intelligence
-          systems, from field detection to multimodal deepfake detection,
+          AI Engineer building computer vision systems, from OCR-based
+          document field detection to multimodal deepfake detection,
           shipped end to end.
         </motion.p>
 

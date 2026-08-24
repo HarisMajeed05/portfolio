@@ -4,7 +4,7 @@ const FACTS = [
   { k: "role", v: "AI Engineer @ MLBench Pvt Ltd" },
   { k: "education", v: "BS Computer Science, ITU Lahore" },
   { k: "gpa", v: "3.28 / 4.0" },
-  { k: "focus", v: "Computer Vision · Document Intelligence · RAG" },
+  { k: "focus", v: "Computer Vision · OCR Document Field Detection · RAG" },
   { k: "fyp", v: "Multimodal Deepfake Detection (LLMs + VLMs)" },
   { k: "location", v: "Lahore, Pakistan" },
 ];
@@ -31,9 +31,9 @@ export default function About() {
         <p className="mt-6 text-[var(--muted)] text-base sm:text-lg leading-relaxed max-w-2xl">
           I like understanding things at the root, compilers, search engines,
           before applying modern AI on top of them. That habit shapes how I
-          build: computer vision pipelines, document intelligence systems,
-          and retrieval-augmented tools that go all the way from a research
-          idea to a deployed FastAPI + React product.
+          build: computer vision pipelines, OCR-based document field
+          detection, and retrieval-augmented tools that go all the way
+          from a research idea to a deployed FastAPI + React product.
         </p>
       </motion.div>
 

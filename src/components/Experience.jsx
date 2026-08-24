@@ -6,7 +6,7 @@ const ROLES = [
     title: "AI Engineer",
     org: "MLBench Pvt Ltd",
     time: "Present",
-    desc: "Building computer vision and document intelligence pipelines for production use, from field detection to deployed inference APIs.",
+    desc: "Building computer vision pipelines for production use, including OCR-based document field detection, from research to deployed inference APIs.",
   },
   {
     title: "Teaching Assistant",
