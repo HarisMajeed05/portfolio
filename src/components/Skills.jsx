@@ -31,6 +31,7 @@ const GROUPS = [
 export default function Skills() {
   return (
     <section id="skills" className="relative px-6 sm:px-10 lg:px-20 py-24 sm:py-32 bg-[var(--panel)]/40 border-y border-[var(--border)]">
+      <div className="mx-auto max-w-7xl">
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -43,7 +44,7 @@ export default function Skills() {
         </h2>
       </motion.div>
 
-      <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl">
+      <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-10">
         {GROUPS.map((group, gi) => (
           <motion.div
             key={group.title}
@@ -62,6 +63,7 @@ export default function Skills() {
             </div>
           </motion.div>
         ))}
+      </div>
       </div>
     </section>
   );

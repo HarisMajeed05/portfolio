@@ -41,7 +41,8 @@ export default function Hero() {
         }}
       />
 
-      <div className="relative z-10 max-w-5xl">
+      <div className="relative z-10 mx-auto max-w-7xl w-full grid lg:grid-cols-[1fr_380px] gap-10 items-center">
+      <div className="max-w-2xl">
         <div className="font-mono text-xs sm:text-sm text-[var(--muted)] mb-10 h-[92px] sm:h-[104px] space-y-1">
           {BOOT_LINES.slice(0, lineIndex).map((l, i) => (
             <div key={i} className="text-[var(--lime)]/70">
@@ -61,7 +62,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: showFrame ? 1 : 0, y: showFrame ? 0 : 16 }}
             transition={{ duration: 0.5 }}
-            className="font-display font-semibold text-[13vw] sm:text-[7vw] lg:text-[5.5rem] leading-[0.95] tracking-tight"
+            className="font-display font-semibold text-[13vw] sm:text-[7vw] lg:text-[4.4rem] leading-[0.95] tracking-tight"
           >
             Haris Majeed
             <br />
@@ -113,6 +114,37 @@ export default function Hero() {
             get in touch
           </a>
         </motion.div>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, x: 24 }}
+        animate={{ opacity: showFrame ? 1 : 0, x: showFrame ? 0 : 24 }}
+        transition={{ duration: 0.6, delay: 0.5 }}
+        className="hidden lg:block rounded-lg border border-[var(--border)] bg-[var(--panel)]/80 backdrop-blur overflow-hidden float-slow"
+      >
+        <div className="font-mono text-[11px] text-[var(--muted)] px-5 py-3 border-b border-[var(--border)] flex items-center justify-between">
+          <span>inference_stats.json</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--lime)] pulse-glow" />
+        </div>
+        <dl className="divide-y divide-[var(--border)]">
+          <div className="px-5 py-4">
+            <dt className="font-mono text-xs text-[var(--cyan)]">precision</dt>
+            <dd className="text-2xl font-display font-semibold mt-1">0.9335</dd>
+          </div>
+          <div className="px-5 py-4">
+            <dt className="font-mono text-xs text-[var(--cyan)]">model size reduction</dt>
+            <dd className="text-2xl font-display font-semibold mt-1">&gt;80%</dd>
+          </div>
+          <div className="px-5 py-4">
+            <dt className="font-mono text-xs text-[var(--cyan)]">real-frame accuracy</dt>
+            <dd className="text-2xl font-display font-semibold mt-1">0% → 83%</dd>
+          </div>
+          <div className="px-5 py-4">
+            <dt className="font-mono text-xs text-[var(--cyan)]">deployment</dt>
+            <dd className="text-sm text-[var(--text)] mt-1">single consumer GPU</dd>
+          </div>
+        </dl>
+      </motion.div>
       </div>
 
       <motion.div

@@ -5,6 +5,15 @@ import DetectionBox from "./DetectionBox";
 
 const PROJECTS = [
   {
+    id: "defect-detection",
+    name: "Object Defect Detection",
+    tag: "production_cv",
+    confidence: 96,
+    stack: ["Python", "PyTorch", "DINOv2"],
+    desc: "Vision pipeline grading product quality and defects from image input, built for production deployment.",
+    href: "https://github.com/HarisMajeed05/Object-Defect-Detection",
+  },
+  {
     id: "legal-ai",
     name: "Legal AI Chatbot",
     tag: "rag_system",
@@ -18,16 +27,43 @@ const PROJECTS = [
     name: "Footfall Counter",
     tag: "real_time_cv",
     confidence: 97,
-    stack: ["YOLO", "RT-DETR", "ByteTrack", "OpenCV"],
+    stack: ["YOLO", "ByteTrack", "OpenCV"],
     desc: "Real-time people-counting with configurable virtual-line entry/exit, runs entirely on CPU.",
     href: "https://github.com/HarisMajeed05/Footfall-counter-Yolo",
+  },
+  {
+    id: "yolo-deploy",
+    name: "YOLO Training + Deployment",
+    tag: "mlops",
+    confidence: 93,
+    stack: ["Python", "YOLO"],
+    desc: "End-to-end pipeline for training and deploying YOLO object detection models.",
+    href: "https://github.com/HarisMajeed05/YOLO-Model-Training-Deployment",
+  },
+  {
+    id: "brainbox",
+    name: "Brainbox AI Chatbot",
+    tag: "full_stack",
+    confidence: 91,
+    stack: ["React", "FastAPI", "MongoDB", "Groq"],
+    desc: "Mobile-style AI assistant with real-time chat and a mock banking interface.",
+    href: "https://github.com/HarisMajeed05/brainbox-ai-chatbot-app",
+  },
+  {
+    id: "meeting-summarizer",
+    name: "AI Meeting Summarizer",
+    tag: "nlp_pipeline",
+    confidence: 90,
+    stack: ["Django", "Transformers"],
+    desc: "Speech-to-text transcription and automated meeting summarization system.",
+    href: "https://github.com/HarisMajeed05/AI-Meeting-Summarizer",
   },
   {
     id: "deepfake",
     name: "Multimodal Deepfake Detection",
     tag: "final_year_project",
     confidence: 91,
-    stack: ["VLMs", "PyTorch"],
+    stack: ["LLMs", "VLMs", "PyTorch"],
     desc: "Detect-explain-judge pipeline (ExDDV-Judge), 80% smaller than baseline VLMs, runs on one consumer GPU.",
     href: null,
   },
@@ -40,24 +76,6 @@ const PROJECTS = [
     desc: "Lexical analysis, recursive-descent parsing, and semantic checks, built from first principles.",
     href: "https://github.com/HarisMajeed05/Cpp-Compiler-From-Scratch",
   },
-  {
-    id: "airbnb",
-    name: "Airbnb Clone (Extended)",
-    tag: "full_stack",
-    confidence: 90,
-    stack: ["React", "Node.js", "Express", "MongoDB"],
-    desc: "Full-stack booking platform clone with JWT auth and role-based access control.",
-    href: "https://github.com/HarisMajeed05/Airbnb-Inspired-Homepage",
-  },
-  {
-    id: "search",
-    name: "Search Engine",
-    tag: "systems",
-    confidence: 88,
-    stack: ["C++"],
-    desc: "Custom search engine using an inverted index for efficient text retrieval.",
-    href: "https://github.com/HarisMajeed05/Search-Engine",
-  },
 ];
 
 export default function Projects() {
@@ -65,6 +83,7 @@ export default function Projects() {
 
   return (
     <section id="projects" className="relative px-6 sm:px-10 lg:px-20 py-24 sm:py-32">
+      <div className="mx-auto max-w-7xl">
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -119,12 +138,13 @@ export default function Projects() {
               </div>
               {!p.href && (
                 <span className="mt-4 inline-block font-mono text-[10px] text-[var(--muted)]">
-                  private / academic repo
+                  academic project
                 </span>
               )}
             </a>
           </motion.div>
         ))}
+      </div>
       </div>
     </section>
   );
