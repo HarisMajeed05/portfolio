@@ -8,6 +8,14 @@ const BOOT_LINES = [
   "$ inference ready",
 ];
 
+const DETECTIONS = [
+  { label: "Computer Vision", confidence: 96 },
+  { label: "PyTorch", confidence: 92 },
+  { label: "RAG / LLMs", confidence: 90 },
+  { label: "FastAPI + React", confidence: 91 },
+  { label: "C++ Systems", confidence: 85 },
+];
+
 export default function Hero() {
   const [lineIndex, setLineIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
@@ -90,9 +98,9 @@ export default function Hero() {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="mt-10 sm:mt-12 max-w-xl text-base sm:text-lg text-[var(--muted)] leading-relaxed"
         >
-          AI Engineer building computer vision systems, from OCR-based
-          document field detection to multimodal deepfake detection,
-          shipped end to end.
+          AI Engineer building computer vision systems, from real-time
+          object detection to multimodal deepfake detection, shipped
+          end to end.
         </motion.p>
 
         <motion.div
@@ -123,27 +131,22 @@ export default function Hero() {
         className="hidden lg:block rounded-lg border border-[var(--border)] bg-[var(--panel)]/80 backdrop-blur overflow-hidden float-slow"
       >
         <div className="font-mono text-[11px] text-[var(--muted)] px-5 py-3 border-b border-[var(--border)] flex items-center justify-between">
-          <span>inference_stats.json</span>
+          <span>detections.json</span>
           <span className="w-1.5 h-1.5 rounded-full bg-[var(--lime)] pulse-glow" />
         </div>
-        <dl className="divide-y divide-[var(--border)]">
-          <div className="px-5 py-4">
-            <dt className="font-mono text-xs text-[var(--cyan)]">precision</dt>
-            <dd className="text-2xl font-display font-semibold mt-1">0.9335</dd>
-          </div>
-          <div className="px-5 py-4">
-            <dt className="font-mono text-xs text-[var(--cyan)]">model size reduction</dt>
-            <dd className="text-2xl font-display font-semibold mt-1">&gt;80%</dd>
-          </div>
-          <div className="px-5 py-4">
-            <dt className="font-mono text-xs text-[var(--cyan)]">real-frame accuracy</dt>
-            <dd className="text-2xl font-display font-semibold mt-1">0% → 83%</dd>
-          </div>
-          <div className="px-5 py-4">
-            <dt className="font-mono text-xs text-[var(--cyan)]">deployment</dt>
-            <dd className="text-sm text-[var(--text)] mt-1">single consumer GPU</dd>
-          </div>
-        </dl>
+        <div className="px-5 py-4 space-y-3">
+          {DETECTIONS.map((d) => (
+            <div key={d.label} className="flex items-center justify-between gap-4">
+              <span className="font-mono text-sm text-[var(--text)]">{d.label}</span>
+              <span className="font-mono text-xs px-2 py-1 rounded-sm bg-[var(--lime)]/10 text-[var(--lime)] shrink-0">
+                {d.confidence}%
+              </span>
+            </div>
+          ))}
+        </div>
+        <div className="px-5 py-3 border-t border-[var(--border)] font-mono text-[11px] text-[var(--muted)]">
+          {DETECTIONS.length} objects detected
+        </div>
       </motion.div>
       </div>
 
