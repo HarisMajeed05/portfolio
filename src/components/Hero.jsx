@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { motion } from "framer-motion";
+
+const Scene3D = lazy(() => import("./Scene3D"));
 
 const BOOT_LINES = [
   "$ initializing vision pipeline...",
@@ -20,6 +22,7 @@ export default function Hero() {
   const [lineIndex, setLineIndex] = useState(0);
   const [charIndex, setCharIndex] = useState(0);
   const [showFrame, setShowFrame] = useState(false);
+  const [mount3D, setMount3D] = useState(false);
 
   useEffect(() => {
     if (lineIndex >= BOOT_LINES.length) {
@@ -38,8 +41,23 @@ export default function Hero() {
     return () => clearTimeout(t);
   }, [lineIndex, charIndex]);
 
+  useEffect(() => {
+    // only mount the (comparatively heavy) 3D canvas once the boot typing
+    // sequence has fully finished, so it never steals main-thread time
+    // from that animation
+    if (showFrame) {
+      const t = setTimeout(() => setMount3D(true), 150);
+      return () => clearTimeout(t);
+    }
+  }, [showFrame]);
+
   return (
     <section className="relative min-h-[100svh] flex flex-col justify-center px-6 sm:px-10 lg:px-20 pt-24 pb-16 overflow-hidden">
+      {mount3D && (
+        <Suspense fallback={null}>
+          <Scene3D />
+        </Suspense>
+      )}
       <div className="absolute inset-0 grid-bg opacity-60" />
       <div
         className="absolute inset-0 pointer-events-none"
@@ -111,12 +129,14 @@ export default function Hero() {
         >
           <a
             href="#projects"
+            data-cursor="view"
             className="font-mono text-sm px-5 py-3 rounded-sm bg-[var(--lime)] text-[#0b0f14] font-medium hover:brightness-110 transition"
           >
             view projects
           </a>
           <a
             href="#contact"
+            data-cursor="open"
             className="font-mono text-sm px-5 py-3 rounded-sm border border-[var(--border)] hover:border-[var(--cyan)] hover:text-[var(--cyan)] transition"
           >
             get in touch

@@ -12,7 +12,7 @@ const LINKS = [
   {
     label: "resume",
     value: "view_resume.pdf",
-    href: "https://drive.google.com/file/d/1AFsaCTKRIQTyxDbBPXQT2-1yZfoaNnIV/view?usp=sharing",
+    href: "https://drive.google.com/file/d/17BfmxrvdsJnaKDuiCunApBNM1tg35Ls3/view?usp=sharing",
   },
 ];
 

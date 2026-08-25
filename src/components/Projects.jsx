@@ -119,6 +119,7 @@ export default function Projects() {
               href={p.href || "#"}
               target={p.href ? "_blank" : undefined}
               rel={p.href ? "noreferrer" : undefined}
+              data-cursor={p.href ? "open repo" : "academic"}
               className={`block h-full rounded-md border border-[var(--border)] bg-[var(--panel)] p-6 transition-colors ${
                 p.href ? "cursor-pointer" : "cursor-default"
               }`}
