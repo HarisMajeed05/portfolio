@@ -14,11 +14,9 @@ import KeyboardNav from "./components/KeyboardNav";
 import CommandPalette from "./components/CommandPalette";
 import AskBot from "./components/AskBot";
 import BackToTop from "./components/BackToTop";
-import useSmoothScroll from "./hooks/useSmoothScroll";
 
 export default function App() {
   const [booted, setBooted] = useState(false);
-  useSmoothScroll();
 
   return (
     <div className="relative">
