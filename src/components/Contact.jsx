@@ -7,7 +7,7 @@ const LINKS = [
   {
     label: "linkedin",
     value: "linkedin.com/in/haris-majeed-raja",
-    href: "https://www.linkedin.com/in/haris-majeed-raja/",
+    href: "https://www.linkedin.com/in/haris-majeed-raja-390386267/",
   },
   {
     label: "resume",
