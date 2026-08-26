@@ -35,7 +35,7 @@ export default function Skills() {
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-80px" }}
+        viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.6 }}
       >
         <Eyebrow>02 · capabilities</Eyebrow>
@@ -50,7 +50,7 @@ export default function Skills() {
             key={group.title}
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
+            viewport={{ once: true, amount: 0.15 }}
             transition={{ duration: 0.5, delay: gi * 0.08 }}
           >
             <h3 className="font-mono text-xs tracking-widest uppercase text-[var(--cyan)] mb-6">
@@ -80,7 +80,7 @@ function SkillBar({ name, score, delay }) {
         <motion.div
           initial={{ width: 0 }}
           whileInView={{ width: `${score}%` }}
-          viewport={{ once: true, margin: "-60px" }}
+          viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 0.9, delay, ease: "easeOut" }}
           className="h-full rounded-full"
           style={{ background: "linear-gradient(90deg, var(--cyan), var(--lime))" }}
