@@ -5,7 +5,7 @@ const FACTS = [
   { k: "education", v: "BS Computer Science, ITU Lahore" },
   { k: "gpa", v: "3.28 / 4.0" },
   { k: "focus", v: "Computer Vision · RAG Systems · Full-Stack AI" },
-  { k: "fyp", v: "Multimodal Deepfake Detection (VLMs)" },
+  { k: "fyp", v: "Multimodal Deepfake Detection (LLMs + VLMs)" },
   { k: "location", v: "Lahore, Pakistan" },
 ];
 

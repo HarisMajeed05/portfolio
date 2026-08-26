@@ -1,5 +1,6 @@
 import { useEffect, useState, lazy, Suspense } from "react";
 import { motion } from "framer-motion";
+import Magnetic from "./Magnetic";
 
 const Scene3D = lazy(() => import("./Scene3D"));
 
@@ -127,20 +128,24 @@ export default function Hero() {
           transition={{ duration: 0.5, delay: 0.45 }}
           className="mt-9 flex flex-wrap items-center gap-4"
         >
-          <a
-            href="#projects"
-            data-cursor="view"
-            className="font-mono text-sm px-5 py-3 rounded-sm bg-[var(--lime)] text-[#0b0f14] font-medium hover:brightness-110 transition"
-          >
-            view projects
-          </a>
-          <a
-            href="#contact"
-            data-cursor="open"
-            className="font-mono text-sm px-5 py-3 rounded-sm border border-[var(--border)] hover:border-[var(--cyan)] hover:text-[var(--cyan)] transition"
-          >
-            get in touch
-          </a>
+          <Magnetic>
+            <a
+              href="#projects"
+              data-cursor="view"
+              className="font-mono text-sm px-5 py-3 rounded-sm bg-[var(--lime)] text-[#0b0f14] font-medium hover:brightness-110 transition"
+            >
+              view projects
+            </a>
+          </Magnetic>
+          <Magnetic>
+            <a
+              href="#contact"
+              data-cursor="open"
+              className="font-mono text-sm px-5 py-3 rounded-sm border border-[var(--border)] hover:border-[var(--cyan)] hover:text-[var(--cyan)] transition"
+            >
+              get in touch
+            </a>
+          </Magnetic>
         </motion.div>
       </div>
 

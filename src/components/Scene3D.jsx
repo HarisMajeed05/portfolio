@@ -1,5 +1,6 @@
 import { useRef, useMemo } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Float } from "@react-three/drei";
 import * as THREE from "three";
 
 // A field of points that drift like a scanning point-cloud, with a few
@@ -79,6 +80,18 @@ export default function Scene3D() {
         frameloop="always"
       >
         <ParticleField />
+        <Float speed={1.2} rotationIntensity={0.5} floatIntensity={0.8}>
+          <mesh position={[3.2, 1.4, -1]}>
+            <boxGeometry args={[1.1, 0.75, 0.5]} />
+            <meshBasicMaterial color="#a6ff00" wireframe transparent opacity={0.22} />
+          </mesh>
+        </Float>
+        <Float speed={0.9} rotationIntensity={0.4} floatIntensity={0.6}>
+          <mesh position={[-4.6, 2, -2.5]}>
+            <boxGeometry args={[0.7, 0.7, 0.35]} />
+            <meshBasicMaterial color="#33c7ff" wireframe transparent opacity={0.18} />
+          </mesh>
+        </Float>
       </Canvas>
     </div>
   );

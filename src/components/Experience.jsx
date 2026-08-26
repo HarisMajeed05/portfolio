@@ -16,7 +16,7 @@ const ROLES = [
   },
   {
     title: "Final Year Project",
-    org: "Multimodal Deepfake Detection using VLMs",
+    org: "Multimodal Deepfake Detection using LLMs and VLMs",
     time: "Supervised by Dr. Waqas Sultani",
     desc: "Detect-explain-judge pipeline replacing large VLMs with lightweight alternatives, over 80% smaller.",
   },

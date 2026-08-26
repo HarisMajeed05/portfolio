@@ -76,6 +76,15 @@ const PROJECTS = [
     desc: "Lexical analysis, recursive-descent parsing, and semantic checks, built from first principles.",
     href: "https://github.com/HarisMajeed05/Cpp-Compiler-From-Scratch",
   },
+  {
+    id: "search-engine",
+    name: "Search Engine",
+    tag: "information_retrieval",
+    confidence: 87,
+    stack: ["C++"],
+    desc: "Custom search engine using an inverted index, multi-condition query handling, and result ranking.",
+    href: "https://github.com/HarisMajeed05/Search-Engine",
+  },
 ];
 
 export default function Projects() {

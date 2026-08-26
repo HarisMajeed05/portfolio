@@ -11,9 +11,14 @@ import CustomCursor from "./components/CustomCursor";
 import BootSequence from "./components/BootSequence";
 import ScrollGauge from "./components/ScrollGauge";
 import KeyboardNav from "./components/KeyboardNav";
+import CommandPalette from "./components/CommandPalette";
+import AskBot from "./components/AskBot";
+import BackToTop from "./components/BackToTop";
+import useSmoothScroll from "./hooks/useSmoothScroll";
 
 export default function App() {
   const [booted, setBooted] = useState(false);
+  useSmoothScroll();
 
   return (
     <div className="relative">
@@ -23,6 +28,9 @@ export default function App() {
       <div className="noise" />
       <ScrollGauge />
       <KeyboardNav />
+      <CommandPalette />
+      <AskBot />
+      <BackToTop />
       <Navbar />
       <main className="relative z-10">
         <Hero />
