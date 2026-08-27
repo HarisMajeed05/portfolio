@@ -4,7 +4,7 @@
 
 const KB = [
   {
-    keywords: ["who", "haris", "about", "introduce", "yourself"],
+    keywords: ["who", "haris", "about haris", "introduce", "yourself"],
     answer:
       "Haris Majeed Raja is an AI Engineer at MLBench Pvt Ltd, based in Lahore, Pakistan. He builds computer vision and full-stack AI systems, and is finishing a BS in Computer Science at ITU Lahore.",
   },
