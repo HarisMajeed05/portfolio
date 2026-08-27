@@ -4,8 +4,8 @@ export default function Footer() {
       <span>© {new Date().getFullYear()} Haris Majeed Raja</span>
       <span className="flex items-center gap-1.5">
         {/* <span className="w-1.5 h-1.5 rounded-full bg-[var(--lime)]" />
-        built with react + framer-motion
-      </span> */}
+        built with react + framer-motion */}
+      </span>
     </footer>
   );
 }
