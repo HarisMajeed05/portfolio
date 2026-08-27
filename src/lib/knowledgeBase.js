@@ -34,7 +34,7 @@ const KB = [
       "Haris has interned as a Front-End Intern at Certura (web apps with HTML/CSS/JS), a Machine Learning Intern at Arch Technologies (spam detection, price prediction, classification models), and a Salesforce Admin Intern at Incredibles (data modeling, flows, Apex).",
   },
   {
-    keywords: ["fyp", "final year", "thesis", "deepfake", "vlm", "sultani"],
+    keywords: ["fyp", "final year", "thesis", "deepfake", "vlm", "sultani", "about the fyp"],
     answer:
       "Haris's final year project is Multimodal Deepfake Detection using VLMs, supervised by Dr. Waqas Sultani. He designed ExDDV-Judge, a detect-explain-judge pipeline that replaces large 11B/7B parameter VLMs with lightweight alternatives, cutting model size by over 80% while running on a single consumer GPU. He also fixed a real-frame misclassification bug, taking accuracy from 0% to 83%.",
   },
