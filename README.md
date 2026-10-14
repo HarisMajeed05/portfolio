@@ -1,16 +1,16 @@
-# Portfolio — Haris Majeed Raja
+# Portfolio
 
-React + Vite portfolio built around a computer-vision detection theme.
-Hovering a project draws an animated bounding box with a confidence score,
-mirroring YOLO/RF-DETR inference output.
+Personal portfolio of Haris Majeed Raja, built with React and Vite. The theme follows computer vision: hovering over a project draws an animated bounding box with a confidence score, like YOLO or RF-DETR output.
+
+Live site: https://harismajeed05.github.io/portfolio/
 
 ## Stack
 
-- React 19 + Vite
+- React 19 and Vite
 - Tailwind CSS v4
 - Framer Motion
 
-## Local development
+## Run locally
 
 ```bash
 npm install
@@ -21,44 +21,32 @@ npm run dev
 
 ```bash
 npm run build
-npm run preview   # test the production build locally
+npm run preview
 ```
 
-## Deployment (GitHub Pages)
+## Deploy to GitHub Pages
 
-This repo includes `.github/workflows/deploy.yml`, which builds and deploys
-automatically on every push to `main`.
+`.github/workflows/deploy.yml` builds and deploys the site on every push to `main`.
 
-**One-time setup after pushing:**
+One-time setup:
 
-1. Go to your repo's **Settings → Pages**
-2. Under **Build and deployment → Source**, select **GitHub Actions**
-3. Push to `main` (or re-run the workflow from the **Actions** tab)
-4. Your site will be live at `https://<your-username>.github.io/portfolio/`
+1. Go to **Settings > Pages** in the repository.
+2. Under **Build and deployment**, set **Source** to **GitHub Actions**.
+3. Push to `main`, or run the workflow from the **Actions** tab.
 
-If you rename the repo, update the `base` path in `vite.config.js` to match.
+If you rename the repository, update `base` in `vite.config.js` to match.
 
 ## Structure
 
 ```
 src/
   components/
-    Navbar.jsx
-    Hero.jsx
-    About.jsx
-    Skills.jsx
-    Projects.jsx
-    Experience.jsx
-    Contact.jsx
-    Footer.jsx
-    DetectionBox.jsx   ← the signature hover interaction
+    Navbar, Hero, About, Skills, Projects, Experience, Contact, Footer
+    DetectionBox.jsx   the hover bounding box
   App.jsx
-  index.css            ← design tokens + global styles
+  index.css            design tokens and global styles
 ```
 
 ## Editing content
 
-All copy lives directly in the component files, there's no separate CMS or
-data file. To update projects, edit the `PROJECTS` array in
-`src/components/Projects.jsx`. Same pattern for skills, experience, and
-contact links in their respective files.
+All text lives in the component files. To change projects, edit the `PROJECTS` array in `src/components/Projects.jsx`. Skills, experience and contact links work the same way in their own files.
