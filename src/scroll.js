@@ -1,0 +1,163 @@
+import { useEffect, useState } from "react";
+import Lenis from "lenis";
+
+// One shared scroll state. The DOM sections and the WebGL world both read it,
+// the world never touches React state per frame.
+//   c      chapter position as a float: 2.4 means 40% of the way from chapter 2 to 3
+//   u[i]   progress through chapter i while it is pinned, 0 to 1
+//   speed  smoothed scroll speed in px/s, drives the warp streaks
+export const S = {
+  y: 0,
+  vh: 1,
+  c: 0,
+  u: [0, 0, 0, 0, 0, 0],
+  speed: 0,
+  shift: 0,
+  camZ: 10,
+  tops: [],
+  heights: [],
+  reduced: false,
+};
+
+let lenis = null;
+let lastY = 0;
+let lastT = 0;
+
+function measure() {
+  const els = document.querySelectorAll("[data-chapter]");
+  S.vh = window.innerHeight;
+  S.tops = [...els].map((el) => el.getBoundingClientRect().top + window.scrollY);
+  S.heights = [...els].map((el) => el.offsetHeight);
+}
+
+function solve() {
+  const n = S.tops.length;
+  if (!n) return;
+  const y = S.y;
+  for (let i = 0; i < n; i++) S.u[i] = 0;
+  const start = (i) => S.tops[i];
+  const settled = (i) => S.tops[i] + Math.max(0, S.heights[i] - S.vh);
+
+  if (y <= start(0)) {
+    S.c = 0;
+    return;
+  }
+  for (let i = 0; i < n; i++) {
+    const pin = Math.max(1, S.heights[i] - S.vh);
+    const last = i === n - 1;
+    const next = last ? Infinity : start(i + 1);
+    if (y < next) {
+      if (y <= settled(i) || last) {
+        S.c = i;
+        S.u[i] = Math.min(1, Math.max(0, (y - start(i)) / pin));
+      } else {
+        const t = (y - settled(i)) / (next - settled(i));
+        S.c = i + t;
+        S.u[i] = 1;
+        S.u[i + 1] = 0;
+      }
+      return;
+    }
+  }
+}
+
+export function initScroll() {
+  S.reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  measure();
+
+  const onScroll = (y) => {
+    S.y = y;
+    solve();
+  };
+
+  if (S.reduced) {
+    window.addEventListener("scroll", () => onScroll(window.scrollY), { passive: true });
+  } else {
+    lenis = new Lenis({ lerp: 0.09, wheelMultiplier: 0.95, touchMultiplier: 1.4 });
+    lenis.on("scroll", (e) => onScroll(e.scroll));
+    const raf = (t) => {
+      lenis.raf(t);
+      // pixels per second, eased by real time so it does not depend on frame rate
+      const dt = Math.max(0.001, (t - lastT) / 1000);
+      lastT = t;
+      S.speed += (Math.abs(S.y - lastY) / dt - S.speed) * (1 - Math.exp(-dt * 7));
+      lastY = S.y;
+      requestAnimationFrame(raf);
+    };
+    requestAnimationFrame(raf);
+  }
+
+  const onResize = () => {
+    measure();
+    onScroll(window.scrollY);
+  };
+  window.addEventListener("resize", onResize);
+  // fonts and images change section heights, so measure again once they land
+  window.addEventListener("load", onResize);
+  document.fonts?.ready.then(onResize);
+  setTimeout(onResize, 400);
+  onScroll(window.scrollY);
+}
+
+export function goTo(i) {
+  const top = S.tops[i] ?? 0;
+  if (lenis) lenis.scrollTo(top, { duration: 2.4, easing: (t) => 1 - Math.pow(1 - t, 4) });
+  else window.scrollTo({ top });
+}
+
+// scroll to an absolute y. d = 0 jumps with no animation
+export function goToY(y, d = 1.6) {
+  if (lenis) lenis.scrollTo(y, d === 0 ? { immediate: true } : { duration: d, easing: (t) => 1 - Math.pow(1 - t, 3) });
+  else window.scrollTo({ top: y });
+}
+
+// freezes the page behind the archive drawer
+export function lock(on) {
+  if (lenis) {
+    if (on) lenis.stop();
+    else lenis.start();
+  } else document.documentElement.style.overflow = on ? "hidden" : "";
+}
+
+// scrolls so that pinned chapter i sits at inner progress u
+export function goToProgress(i, u) {
+  const pin = Math.max(1, S.heights[i] - S.vh);
+  const top = S.tops[i] + pin * u;
+  if (lenis) lenis.scrollTo(top, { duration: 1.4, easing: (t) => 1 - Math.pow(1 - t, 3) });
+  else window.scrollTo({ top });
+}
+
+// shared helpers for the world
+export const clamp01 = (x) => Math.min(1, Math.max(0, x));
+export const smooth = (a, b, x) => {
+  const t = clamp01((x - a) / (b - a));
+  return t * t * (3 - 2 * t);
+};
+
+// camera lingers on each stop, then glides to the next one.
+// s runs 0..n-1, the return value is a "stop position" in the same range
+export function hold(u, n) {
+  const s = clamp01(u) * (n - 1);
+  const k = Math.min(n - 2, Math.floor(s));
+  return k + smooth(0.18, 0.82, s - k);
+}
+
+// DOM side: which stop (role, project) of a pinned chapter is in front right now
+export function useStop(chapter, n) {
+  const [k, setK] = useState(0);
+  useEffect(() => {
+    let raf;
+    let last = 0;
+    const tick = () => {
+      const now = Math.round(hold(S.u[chapter], n));
+      if (now !== last) {
+        last = now;
+        setK(now);
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [chapter, n]);
+  return k;
+}
