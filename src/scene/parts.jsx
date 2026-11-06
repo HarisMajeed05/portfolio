@@ -1,13 +1,13 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Text } from "@react-three/drei";
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { useAccent } from "../theme";
 import MONO from "@fontsource/geist-mono/files/geist-mono-latin-500-normal.woff?url";
 import SERIF from "@fontsource/instrument-serif/files/instrument-serif-latin-400-normal.woff?url";
 import SANS from "@fontsource/geist-sans/files/geist-sans-latin-500-normal.woff?url";
 
 export const FONT = { mono: MONO, serif: SERIF, sans: SANS };
-export const ORANGE = "#ff5b2e";
 export const PAPER = "#ece8df";
 export const ICE = "#8fd8ff";
 
@@ -36,8 +36,18 @@ export function Bracket({ w, h, len = 0.35, thick = 0.022, material, ...rest }) 
   return <mesh geometry={geo} material={material} {...rest} />;
 }
 
+// keeps a material on the accent when the visitor switches colour
+export function useAccentMat(mat) {
+  const hex = useAccent();
+  useEffect(() => {
+    mat.color.set(hex);
+  }, [mat, hex]);
+}
+
 // The little filled label a detector puts on a box: "person 0.98"
-export function Tag({ text, size = 0.13, color = ORANGE, ink = "#0a0a0a", ...rest }) {
+export function Tag({ text, size = 0.13, color, ink = "#0a0a0a", ...rest }) {
+  const accent = useAccent();
+  color = color ?? accent;
   const w = text.length * size * 0.62 + size * 1.5;
   const h = size * 1.9;
   return (

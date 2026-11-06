@@ -3,7 +3,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { EffectComposer, Bloom, Vignette, ChromaticAberration } from "@react-three/postprocessing";
 import { PerformanceMonitor } from "@react-three/drei";
 import * as THREE from "three";
-import { S } from "../scroll";
+import { S, clamp01 } from "../scroll";
 import { pose, END_Z } from "./stage";
 import Portrait from "./Portrait";
 import Warp from "./Warp";
@@ -29,7 +29,11 @@ function Rig({ wide }) {
     const swing = Math.sin(Math.PI * t) * (i % 2 ? -1 : 1) * (wide ? 4.2 : 2.2);
     const tx = lerp(A.x, B.x, w) + swing + pointer.x * 0.38;
     const ty = lerp(A.y, B.y, w) + pointer.y * 0.22;
-    const tz = lerp(A.z, B.z, w);
+    // intro: the camera starts far back and dollies in once the loader lifts
+    const since = S.t0 < 0 ? 0 : performance.now() / 1000 - S.t0;
+    const e0 = 1 - Math.pow(1 - clamp01(since / 3), 4);
+    const open = (1 - e0) * clamp01(1 - S.c * 2);
+    const tz = lerp(A.z, B.z, w) + open * (wide ? 11 : 8);
     const k = 9;
     S.camZ = camera.position.z;
     camera.position.x = damp(camera.position.x, tx, k, dt);
@@ -38,8 +42,10 @@ function Rig({ wide }) {
     camera.lookAt(camera.position.x - swing * 0.35 - pointer.x * 0.25, camera.position.y * 0.5, camera.position.z - 20);
     camera.rotateZ(Math.sin(Math.PI * t) * (i % 2 ? 1 : -1) * 0.045);
 
-    S.shift = damp(S.shift, lerp(A.shift, B.shift, w), 6, dt);
-    camera.fov = wide ? 42 : 58;
+    // with a case study open the scene slides left to clear the drawer
+    S.f = damp(S.f, S.focus, 4, dt);
+    S.shift = damp(S.shift, lerp(A.shift, B.shift, w) - (wide ? 0.2 * S.f : 0), 6, dt);
+    camera.fov = (wide ? 42 : 58) + open * 12;
     camera.setViewOffset(size.width, size.height, -S.shift * size.width, 0, size.width, size.height);
   });
   return null;

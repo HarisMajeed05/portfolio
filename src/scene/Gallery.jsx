@@ -2,7 +2,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { PROJECTS } from "../data";
-import { S, hold, smooth, clamp01, goToProgress } from "../scroll";
+import { S, hold, smooth, clamp01, goToProgress, onScene } from "../scroll";
+import { useAccent, ACCENT } from "../theme";
+import { useLens } from "../lens";
+import { openStory } from "../story";
+import { useAccentMat } from "./parts";
 import { RING_Z, RING_R } from "./stage";
 import { makeCardTexture, CARD_W, CARD_H } from "./cards";
 
@@ -15,14 +19,18 @@ function Card({ p, i, tex, hover, narrow }) {
   const wrap = useRef();
   const mesh = useRef();
   const mat = useRef();
+  const dim = useRef(1);
 
   useFrame((state, dt) => {
     const t = state.clock.elapsedTime;
+    // a tool picked on the orbits lights the cards that list it and dims the rest
+    const want = S.hl ? (S.hl.has(p.id) ? 1.18 : 0.3) : 1;
+    dim.current += (want - dim.current) * Math.min(1, dt * 6);
     const pos = hold(S.u[3], N);
     const act = clamp01(1 - Math.abs(pos - i) * 1.15);
     const ap = smooth(2.45 + i * 0.012, 2.95 + i * 0.012, S.c) * (1 - smooth(3.02, 3.45, S.c));
     const hov = hover.current === i ? 1 : 0;
-    const k = 0.62 + act * 0.38 + hov * 0.12;
+    const k = (0.62 + act * 0.38 + hov * 0.12) * dim.current;
     mat.current.color.setScalar(k);
     const s = ap * (0.9 + act * 0.1 + hov * 0.04) * (narrow ? 1.04 : 1);
     wrap.current.scale.setScalar(Math.max(0.0001, s));
@@ -42,24 +50,22 @@ function Card({ p, i, tex, hover, narrow }) {
         <mesh
           ref={mesh}
           onPointerOver={(e) => {
-            if (Math.abs(S.c - 3) > 0.12) return;
+            if (Math.abs(S.c - 3) > 0.12 || !onScene(e)) return;
             e.stopPropagation();
             hover.current = i;
             // the reticle reads this and labels itself
             const front = Math.round(hold(S.u[3], N)) === i;
-            document.documentElement.dataset.hit = !front ? "turn here" : p.href ? "open repo" : "no public repo";
+            document.documentElement.dataset.scene = front ? "case study" : "turn here";
           }}
           onPointerOut={() => {
             if (hover.current === i) hover.current = -1;
-            delete document.documentElement.dataset.hit;
+            delete document.documentElement.dataset.scene;
           }}
           onClick={(e) => {
-            if (Math.abs(S.c - 3) > 0.12) return;
-            if (e.nativeEvent.target.closest?.("a,button")) return;
+            if (Math.abs(S.c - 3) > 0.12 || !onScene(e)) return;
             const pos = Math.round(hold(S.u[3], N));
-            if (pos === i) {
-              if (p.href) window.open(p.href, "_blank", "noopener");
-            } else goToProgress(3, i / (N - 1));
+            if (pos === i) openStory(p.id);
+            else goToProgress(3, i / (N - 1));
           }}
         >
           <planeGeometry args={[CW, CH]} />
@@ -75,7 +81,10 @@ export default function Gallery({ narrow }) {
   const ring = useRef();
   const hover = useRef(-1);
   const [tex, setTex] = useState(null);
+  const hex = useAccent();
+  const lens = useLens();
 
+  // the card faces are drawn on canvases, so a new accent or a new order means redrawing them
   useEffect(() => {
     let alive = true;
     const aniso = 8;
@@ -85,18 +94,23 @@ export default function Gallery({ narrow }) {
     ])
       .catch(() => {})
       .then(() => {
-        if (alive) setTex(PROJECTS.map((p, i) => makeCardTexture(p, i, N, aniso)));
+        if (!alive) return;
+        setTex((old) => {
+          old?.forEach((t) => t.dispose());
+          return PROJECTS.map((p, i) => makeCardTexture(p, i, N, aniso));
+        });
       });
     return () => {
       alive = false;
     };
-  }, []);
+  }, [hex, lens.id]);
 
   const lineMat = useMemo(
     () => new THREE.MeshBasicMaterial({ color: "#ece8df", transparent: true, opacity: 0.16, toneMapped: false }),
     [],
   );
-  const tickMat = useMemo(() => new THREE.MeshBasicMaterial({ color: "#ff5b2e", toneMapped: false }), []);
+  const tickMat = useMemo(() => new THREE.MeshBasicMaterial({ color: ACCENT, toneMapped: false }), []);
+  useAccentMat(tickMat);
 
   useFrame(() => {
     root.current.visible = S.c > 2.3 && S.c < 3.6;

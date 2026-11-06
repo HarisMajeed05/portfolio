@@ -1,34 +1,51 @@
 import { useEffect, useRef, useState } from "react";
 import { CHAPTERS, ME } from "./data";
-import { S, goTo, clamp01 } from "./scroll";
+import { S, goTo, clamp01, ready, reveal } from "./scroll";
 import { openArchive } from "./archive";
+import { ACCENTS, A, setAccent, useAccent } from "./theme";
+import { sfx } from "./sound";
 
 const base = import.meta.env.BASE_URL;
 
 // how much of the left-hand scrim each chapter wants
 const SCRIM = [1, 1, 1, 0.15, 0.3, 1];
 
+const BOOT = [
+  ["fonts", "Fonts"],
+  ["portrait", "Portrait"],
+  ["scene", "3D scene"],
+];
+
 export function Loader() {
   const [gone, setGone] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const [boot, setBoot] = useState({ ...S.boot });
   const num = useRef();
   const bar = useRef();
 
   useEffect(() => {
     const t0 = performance.now();
-    let ready = false;
+    let go = false;
     let shown = 0;
     let raf;
-    const on = () => (ready = true);
+    const on = () => {
+      go = true;
+      ready("scene");
+    };
+    const sync = () => setBoot({ ...S.boot });
     window.addEventListener("world-ready", on);
+    window.addEventListener("boot", sync);
+    document.fonts?.ready.then(() => ready("fonts"));
     const finish = () => {
       document.documentElement.classList.add("is-ready");
+      // the camera dolly and the portrait assembling both start now
+      reveal();
       setLeaving(true);
       setTimeout(() => setGone(true), 1100);
     };
     const tick = () => {
       const t = (performance.now() - t0) / 1000;
-      const target = ready && t > 1.3 ? 100 : Math.min(92, 92 * (1 - Math.exp(-t * 0.8)));
+      const target = go && t > 1.3 ? 100 : Math.min(92, 92 * (1 - Math.exp(-t * 0.8)));
       shown += (target - shown) * 0.1;
       if (num.current) num.current.textContent = String(Math.round(shown)).padStart(3, "0");
       if (bar.current) bar.current.style.transform = `scaleX(${shown / 100})`;
@@ -39,6 +56,7 @@ export function Loader() {
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("world-ready", on);
+      window.removeEventListener("boot", sync);
     };
   }, []);
 
@@ -51,41 +69,75 @@ export function Loader() {
         <i className="loader-bar">
           <u ref={bar} />
         </i>
+        <ul className="boot mono">
+          {BOOT.map(([k, label]) => (
+            <li key={k} className={boot[k] ? "ok" : ""}>
+              <span>{label}</span>
+              <i />
+              <b>{boot[k] ? "ready" : "..."}</b>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
 }
 
 const KEYS = [
+  ["Ctrl K, /", "Search and jump"],
   ["Up Down, J K", "Next or previous stop"],
   ["Left Right", "Turn the project ring"],
   ["1 to 6", "Jump to a chapter"],
   ["A", "Open the archive"],
+  ["N", "Open the lab notes"],
+  ["S", "Sound on or off"],
+  ["C", "Switch the colour"],
   ["P", "Plain view"],
   ["Esc", "Close"],
 ];
 
+const fire = (n) => window.dispatchEvent(new Event(n));
+
 function Tools() {
   const [help, setHelp] = useState(false);
+  const [snd, setSnd] = useState(sfx.on);
+  useAccent();
   useEffect(() => {
     const t = () => setHelp((v) => !v);
     const esc = (e) => e.key === "Escape" && setHelp(false);
+    const s = () => setSnd(sfx.on);
     window.addEventListener("help-toggle", t);
+    window.addEventListener("sound-change", s);
     window.addEventListener("keydown", esc);
     return () => {
       window.removeEventListener("help-toggle", t);
+      window.removeEventListener("sound-change", s);
       window.removeEventListener("keydown", esc);
     };
   }, []);
   return (
     <div className="tools mono">
+      <button onClick={() => fire("palette-open")} data-hit="search">
+        Search <kbd>Ctrl K</kbd>
+      </button>
       <button onClick={openArchive}>
         Archive <kbd>A</kbd>
       </button>
-      <a href={`${base}?view=plain`}>
+      <button className="opt" onClick={() => fire("notes-open")}>
+        Lab notes <kbd>N</kbd>
+      </button>
+      <a className="opt" href={`${base}?view=plain`}>
         Plain view <kbd>P</kbd>
       </a>
-      <button className="tools-keys" aria-expanded={help} onClick={() => setHelp((v) => !v)}>
+      <button className="opt" onClick={() => sfx.toggle()} aria-pressed={snd}>
+        Sound {snd ? "on" : "off"} <kbd>S</kbd>
+      </button>
+      <span className="dots opt" role="group" aria-label="Accent colour">
+        {ACCENTS.map((a) => (
+          <button key={a.id} className={A.id === a.id ? "on" : ""} style={{ "--c": a.hex }} onClick={() => setAccent(a.id)} aria-label={a.label} aria-pressed={A.id === a.id} data-hit={a.label.toLowerCase()} />
+        ))}
+      </span>
+      <button className="tools-keys opt" aria-expanded={help} onClick={() => setHelp((v) => !v)}>
         Keys <kbd>?</kbd>
       </button>
       {help && (
@@ -133,9 +185,11 @@ export function Hud() {
       root.style.setProperty("--scrim", (SCRIM[lo] + (SCRIM[hi] - SCRIM[lo]) * (S.c - lo)).toFixed(3));
       const idx = Math.min(5, Math.round(S.c));
       if (idx !== cur) {
+        if (cur >= 0) sfx.chapter();
         cur = idx;
         setCh(idx);
       }
+      sfx.drive(S.speed);
       if (depth.current) depth.current.textContent = Math.max(0, 10 - S.camZ).toFixed(1).padStart(6, "0");
       if (fps.current) fps.current.textContent = String(Math.round(f));
       if (chLabel.current) chLabel.current.textContent = CHAPTERS[idx].label.toUpperCase();

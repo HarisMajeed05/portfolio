@@ -1,4 +1,6 @@
-import { ME, BRIEF, STATS, ROLES, PROJECTS, ARCHIVE, ORBITS, NOTES, RESUMES } from "./data";
+import { ME, BRIEF, STATS, ROLES, PROJECTS, ARCHIVE, ORBITS, NOTES, RESUMES, LAB, LENSES } from "./data";
+import { L } from "./lens";
+import { tint } from "./theme";
 
 const base = import.meta.env.BASE_URL;
 const stat = (s) => `${s.prefix || ""}${s.to.toFixed(s.dec)}${s.suffix || ""}`;
@@ -7,6 +9,7 @@ const stat = (s) => `${s.prefix || ""}${s.to.toFixed(s.dec)}${s.suffix || ""}`;
 // tricks, works on anything. It also loads first if the browser has no WebGL.
 export default function Plain() {
   const more = ARCHIVE.filter((a) => !a.featured);
+  const lens = LENSES.find((l) => l.id === L.id);
   return (
     <div className="pl">
       <header className="pl-top">
@@ -22,7 +25,7 @@ export default function Plain() {
       </header>
 
       <nav className="pl-nav mono" aria-label="Sections">
-        {["about", "experience", "projects", "more", "toolbox", "contact"].map((x) => (
+        {["about", "experience", "projects", "notes", "more", "toolbox", "contact"].map((x) => (
           <a key={x} href={`#${x}`}>
             {x}
           </a>
@@ -34,7 +37,7 @@ export default function Plain() {
           {BRIEF.lead} <em>{BRIEF.em}</em>
         </h2>
         <p>{BRIEF.body}</p>
-        <p className="dim">{BRIEF.ask}</p>
+        <p className="dim">{lens.ask}</p>
         <dl className="pl-stats">
           {STATS.map((s) => (
             <div key={s.label}>
@@ -93,6 +96,20 @@ export default function Plain() {
         ))}
       </section>
 
+      <section id="notes">
+        <h2>Lab notes</h2>
+        {LAB.map((l) => (
+          <article key={l.id} className="pl-proj">
+            <p className="mono pl-time">{l.tag}</p>
+            <h3>{l.title}</h3>
+            <p>{l.text}</p>
+            <a className="pl-link mono" href={`#${l.project}`}>
+              See the project
+            </a>
+          </article>
+        ))}
+      </section>
+
       <section id="more">
         <h2>More from GitHub</h2>
         <ul className="pl-more">
@@ -111,7 +128,7 @@ export default function Plain() {
         <h2>Toolbox</h2>
         {ORBITS.map((o) => (
           <p key={o.name} className="pl-tools">
-            <b className="mono" style={{ color: o.color }}>
+            <b className="mono" style={{ color: tint(o.color) }}>
               {o.name}
             </b>{" "}
             {o.words.join(", ")}

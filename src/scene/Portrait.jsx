@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { S, smooth, clamp01 } from "../scroll";
-import { Bracket, Tag, lineMaterial, ORANGE } from "./parts";
+import { S, smooth, clamp01, ready } from "../scroll";
+import { Bracket, Tag, lineMaterial, useAccentMat } from "./parts";
+import { ACCENT, A } from "../theme";
+import { sfx } from "../sound";
 
 const SRC = import.meta.env.BASE_URL + "haris.jpg";
 const IMG_W = 768;
@@ -150,7 +152,8 @@ function buildCloud(img, cols, rows) {
 
 const VERT = /* glsl */ `
   uniform float uTime, uResolve, uMorph, uPR, uSize, uFade, uSpin, uScan, uScanOn;
-  uniform vec3 uPointer;
+  uniform float uVel, uBurst, uBurstR;
+  uniform vec3 uPointer, uBurstAt;
   attribute vec3 aSphere, aScatter, aColor;
   attribute vec2 aRand;
   attribute float aAlpha;
@@ -176,11 +179,20 @@ const VERT = /* glsl */ `
     p.z += sin(uTime*.9 + position.x*1.7 + position.y*1.3) * .035 * (1. - m);
     p = mix(aScatter, p, r);
 
+    // the pointer pushes the dust away, harder and swirlier the faster it moves
     vec2 d = p.xy - uPointer.xy;
     float dist = length(d);
-    float f = (1. - smoothstep(0., .9, dist)) * (1. - m * .6) * r;
-    p.xy += normalize(d + 1e-4) * f * .32;
-    p.z += f * .55;
+    float f = (1. - smoothstep(0., 1.15, dist)) * (1. - m * .6) * r;
+    p.xy += normalize(d + 1e-4) * f * (.34 + uVel * .95);
+    p.xy += vec2(-d.y, d.x) / (dist + .15) * f * uVel * .28;
+    p.xy += vec2(sin(uTime * 3. + seed * 60.), cos(uTime * 2.6 + seed * 45.)) * f * uVel * .24;
+    p.z += f * (.55 + uVel * .7);
+
+    // a click or tap sends a ring outward, the cloud blows apart and settles back
+    vec2 bd = p.xy - uBurstAt.xy;
+    float ring = exp(-pow((length(bd) - uBurstR) * 1.5, 2.)) * uBurst * r * (1. - m);
+    p.xy += normalize(bd + 1e-4) * ring * (.7 + seed) * 1.5;
+    p.z += ring * (seed - .25) * 1.8;
 
     vec4 mv = modelViewMatrix * vec4(p, 1.);
     gl_Position = projectionMatrix * mv;
@@ -196,6 +208,7 @@ const VERT = /* glsl */ `
 `;
 
 const FRAG = /* glsl */ `
+  uniform vec3 uAccent;
   varying vec3 vColor;
   varying float vAlpha;
   varying float vScan;
@@ -203,7 +216,7 @@ const FRAG = /* glsl */ `
     float d = length(gl_PointCoord - .5);
     if (d > .5) discard;
     float a = 1. - smoothstep(.12, .5, d);
-    gl_FragColor = vec4(vColor + vec3(1., .34, .1) * vScan * 1.1, a * vAlpha * (1. + vScan * .8));
+    gl_FragColor = vec4(vColor + uAccent * vScan * 1.1, a * vAlpha * (1. + vScan * .8));
     #include <colorspace_fragment>
   }
 `;
@@ -215,7 +228,8 @@ function Box({ px, label, matRef, tagRef, below }) {
   const [x1, y1] = toLocal(px[2], px[3]);
   const w = x1 - x0;
   const h = y0 - y1;
-  const material = useMemo(() => lineMaterial(ORANGE, 0), []);
+  const material = useMemo(() => lineMaterial(ACCENT, 0), []);
+  useAccentMat(material);
   useEffect(() => {
     matRef.current = material;
   }, [matRef, material]);
@@ -240,6 +254,9 @@ export default function Portrait({ end = false, z = 0, narrow }) {
   const personTag = useRef();
   const faceTag = useRef();
   const light = typeof matchMedia !== "undefined" && matchMedia("(pointer: coarse)").matches;
+  // pointer state for the scatter: where it was, how fast it moves, the last click
+  const ptr = useRef({ moved: false, x: 0, y: 0, vel: 0, burstAt: -9, nx: 0, ny: 0, fresh: false });
+  const seen = useRef(A.v);
 
   const cloud = useMemo(() => buildCloud(img, light ? 120 : 200, light ? 160 : 267), [img, light]);
 
@@ -262,11 +279,37 @@ export default function Portrait({ end = false, z = 0, narrow }) {
           uScan: { value: -99 },
           uScanOn: { value: 0 },
           uPointer: { value: new THREE.Vector3(99, 99, 0) },
+          uVel: { value: 0 },
+          uBurst: { value: 0 },
+          uBurstR: { value: 0 },
+          uBurstAt: { value: new THREE.Vector3(99, 99, 0) },
+          uAccent: { value: new THREE.Color(ACCENT) },
         },
       }),
     [],
   );
   const uniforms = material.uniforms;
+
+  // the first portrait is done loading, the loader ticks it off its list
+  useEffect(() => {
+    if (!end) ready("portrait");
+  }, [end, cloud]);
+
+  // a click or tap on the figure blows the cloud apart, it settles back by itself
+  useEffect(() => {
+    const onDown = (e) => {
+      if (e.target.closest?.("a,button,input,textarea,[role=dialog]") || document.documentElement.dataset.modal) return;
+      const here = end ? S.c > 4.6 : S.c < 0.6;
+      if (!here) return;
+      ptr.current.burstAt = performance.now() / 1000;
+      ptr.current.nx = (e.clientX / window.innerWidth) * 2 - 1;
+      ptr.current.ny = -(e.clientY / window.innerHeight) * 2 + 1;
+      ptr.current.fresh = true;
+      sfx.burst();
+    };
+    window.addEventListener("pointerdown", onDown);
+    return () => window.removeEventListener("pointerdown", onDown);
+  }, [end]);
 
   useFrame((state, dt) => {
     const t = state.clock.elapsedTime;
@@ -286,7 +329,8 @@ export default function Portrait({ end = false, z = 0, narrow }) {
       resolve = smooth(4.25, 4.95, S.c);
       visible = S.c > 3.9;
     } else {
-      resolve = clamp01((t - 0.9) / 3.8);
+      // starts when the loader lifts, so you watch the face assemble
+      resolve = S.t0 < 0 ? 0 : clamp01((performance.now() / 1000 - S.t0 - 0.15) / 3.4);
       morph = smooth(0.05, 0.95, S.c);
       visible = S.c < 2.3;
     }
@@ -302,9 +346,35 @@ export default function Portrait({ end = false, z = 0, narrow }) {
     const dist = Math.abs(cam.position.z - z);
     const vh = 2 * dist * Math.tan((cam.fov * Math.PI) / 360);
     const vw = vh * (size.width / size.height);
-    const wx = (state.pointer.x - 2 * S.shift) * (vw / 2) + cam.position.x;
-    const wy = state.pointer.y * (vh / 2) + cam.position.y;
-    uniforms.uPointer.value.set((wx - g.position.x) / g.scale.x, (wy - g.position.y) / g.scale.x, 0);
+    const project = (nx, ny) => [
+      ((nx - 2 * S.shift) * (vw / 2) + cam.position.x - g.position.x) / g.scale.x,
+      ((ny * (vh / 2)) + cam.position.y - g.position.y) / g.scale.x,
+    ];
+    const P = ptr.current;
+    const [lx, ly] = project(state.pointer.x, state.pointer.y);
+    // before the first real move the pointer sits at 0,0, keep it out of the way
+    if (!P.moved && (Math.abs(state.pointer.x) > 0.001 || Math.abs(state.pointer.y) > 0.001)) P.moved = true;
+    if (P.moved) {
+      // speed comes from the pointer itself, so the camera drifting does not count
+      const speed = Math.hypot(state.pointer.x - P.x, state.pointer.y - P.y) / Math.max(dt, 0.001);
+      P.vel += (Math.min(1, speed / 3.2) - P.vel) * Math.min(1, dt * 7);
+      P.x = state.pointer.x;
+      P.y = state.pointer.y;
+      uniforms.uPointer.value.set(lx, ly, 0);
+    }
+    uniforms.uVel.value = P.vel;
+    if (P.fresh) {
+      const [bx, by] = project(P.nx, P.ny);
+      uniforms.uBurstAt.value.set(bx, by, 0);
+      P.fresh = false;
+    }
+    const since = performance.now() / 1000 - P.burstAt;
+    uniforms.uBurstR.value = since * 4.2;
+    uniforms.uBurst.value = since < 1.8 ? Math.pow(1 - since / 1.8, 2) : 0;
+    if (seen.current !== A.v) {
+      seen.current = A.v;
+      uniforms.uAccent.value.set(ACCENT);
+    }
 
     // sway toward the pointer, a cheap parallax that sells the depth
     const ty = state.pointer.x * 0.28;

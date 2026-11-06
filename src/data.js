@@ -7,6 +7,9 @@ export const ME = {
   org: "MLBench",
   place: "Lahore, Pakistan",
   email: "harismajeed0501@gmail.com",
+  // a Formspree endpoint like https://formspree.io/f/abcd1234 turns on the
+  // message form in the contact chapter. Left empty the form stays hidden.
+  form: import.meta.env.VITE_FORM_URL || "",
   github: "https://github.com/HarisMajeed05",
   linkedin: "https://www.linkedin.com/in/harismajeedraja",
 };
@@ -35,6 +38,43 @@ export const BRIEF = {
   body: "I began with full-stack apps, then picked up machine learning through internships in front-end, ML and Salesforce. My final year project went deep on multimodal deepfake detection under Dr. Waqas Sultani. Today I am an AI Engineer at MLBench, turning detection research into pipelines clients can run.",
   ask: "I am looking for AI and computer vision engineering roles, and for graduate research in vision or multimodal learning.",
 };
+
+// "Read me as" switch. Each lens reorders the ring, rewrites two lines and points
+// at the matching resume. Wording follows the summary on that resume.
+export const LENSES = [
+  {
+    id: "general",
+    label: "General",
+    resume: "Haris-Majeed-Raja-General.pdf",
+    lede: "I build computer vision systems that read documents, count crowds and catch fakes, then ship them as working software.",
+    ask: BRIEF.ask,
+    first: [],
+  },
+  {
+    id: "ai",
+    label: "AI",
+    resume: "Haris-Majeed-Raja-AI.pdf",
+    lede: "I turn detection research into pipelines clients can run: RF-DETR for document fields, DINOv2 for rice grading, YOLO and ByteTrack for counting people.",
+    ask: "Through the AI lens: production computer vision pipelines, from fine-tuned RF-DETR at MLBench to a footfall counter that runs on CPU.",
+    first: ["document-field-detection", "rice-grain-quality-analysis", "multimodal-deepfake-detection", "footfall-counter", "object-defect-detection", "legal-ai-chatbot", "scratchgpt"],
+  },
+  {
+    id: "research",
+    label: "Research",
+    resume: "Haris-Majeed-Raja-Research.pdf",
+    lede: "I work on where vision models fail and how they can explain themselves, starting with deepfake detection under Dr. Waqas Sultani.",
+    ask: "Through the research lens: I am looking for graduate research in computer vision or multimodal learning, on model robustness, interpretability and efficient AI systems.",
+    first: ["multimodal-deepfake-detection", "scratchgpt", "furuta-pendulum-rl", "pashto-speech-recognition", "document-field-detection", "footfall-counter"],
+  },
+  {
+    id: "software",
+    label: "Software",
+    resume: "Haris-Majeed-Raja-Software.pdf",
+    lede: "I build full-stack and backend systems, from React frontends and FastAPI services to a compiler written from scratch.",
+    ask: "Through the software lens: React, Node.js, FastAPI and MongoDB apps, plus backend and AI-integrated systems at MLBench.",
+    first: ["legal-ai-chatbot", "live-whiteboard", "airbnb-clone-extended", "c-compiler-from-scratch", "ai-meeting-summarizer", "footfall-counter", "scratchgpt"],
+  },
+];
 
 export const STATS = [
   { from: 0.8568, to: 0.8896, dec: 4, label: "F1 on document field detection, one RF-DETR model against a three-model pipeline" },
@@ -265,14 +305,151 @@ export const PROJECTS = [
   },
 ];
 
+// The longer write-up behind each card, shown in the case study view. Every line
+// comes from my resumes or from what the repo README says, including the limits.
+const STORIES = {
+  "multimodal-deepfake-detection": {
+    why: "Binary deepfake detectors fall to near-chance accuracy on high-quality fakes, and they cannot say why they decided what they did. I benchmarked SBI, AltFreezing and Face Warping Detection on FaceForensics++, Celeb-DF-v2 and HiDF to show it.",
+    how: "ExDDV-Judge works in three stages: detect, explain, judge. BLIP-2 T5-XL and LLaVA-Mini stand in for 11B and 7B VLMs, and pairing BLIP-2 with DeepfakeJudge scores how faithful each explanation is. A Dual-DB router with a fine-tuned CLIP encoder fixed a bug in prior work that misclassified real frames.",
+    result: "Over 80% smaller than the VLMs it replaces, on one consumer GPU. Real-frame accuracy went from 0% to 83%. A Flask app returns per-frame labels, explanations and trust scores.",
+  },
+  scratchgpt: {
+    why: "A modern multimodal decoder with its own student model and its own tokenizer, covering the path from raw text to a served model.",
+    how: "A 32k byte-level BPE tokenizer, then pretraining, SFT, distillation from a local teacher (Qwen3-0.6B by default), DPO and optional RL. The student has 108,989,184 parameters with RoPE, 12 query heads and 3 KV heads, SwiGLU and RMSNorm. FAISS retrieval, an optional VQ-VAE image tokenizer, CPU INT8 export and an OpenAI-compatible server finish it off.",
+    limits: "No trained weights are bundled, so the repo is the pipeline, not a finished model. The RL stage is a research baseline, not PPO or production GRPO, and long-context ability is unmeasured.",
+  },
+  "document-field-detection": {
+    why: "A client found the fields in PDF forms with three models in a row: YOLO, FFDNet/FFDetr and a geometry classifier.",
+    how: "I annotated field geometry, type and role on the client's PDFs to build the training set, then fine-tuned a single RF-DETR-Base to replace all three. Experiment results were logged to choose between runs. I also compared Tesseract and DocTR as OCR backends.",
+    result: "F1 rose from 0.8568 to 0.8896. Precision is 0.9335 and recall 0.8496, against 0.9394 and 0.7875 for the old pipeline, so precision slipped a little and recall gained the most. Tesseract misread checkbox glyphs and corrupted low-resolution footers, and DocTR fixed both.",
+  },
+  "legal-ai-chatbot": {
+    why: "A legal assistant that answers from the documents you upload, with retrieval kept inside one project so a client's files never reach another client's answers.",
+    how: "React on Vite, FastAPI and MongoDB. Uploaded PDFs are chunked into FAISS through LangChain, with all-MiniLM-L6-v2 embeddings running on CPU. The chat model runs on Groq, so the backend needs no GPU. Optional OCR handles scanned PDFs.",
+    result: "Every answer cites its source, and a badge separates document-based answers from general knowledge. JWT login, conversation memory, streaming replies, rate limits, chat export to PDF and project sharing by email.",
+  },
+  "footfall-counter": {
+    why: "Count the people entering and leaving a space, from a video file or a webcam.",
+    how: "YOLO11 or RT-DETR finds people, ByteTrack keeps one ID per person so each is counted once per crossing, and a virtual line at any angle splits entries from exits. A small tool lets you draw the line on the first frame of your own camera.",
+    result: "Runs on CPU, no GPU needed. Model size, confidence, IoU, image size and line position are all settings, so you can trade accuracy for speed.",
+    limits: "Larger models are slow on CPU, so test on your own machine first.",
+  },
+  "rice-grain-quality-analysis": {
+    why: "A client wanted rice graded grain by grain, and the variety identified for the good ones.",
+    how: "I contributed to the tool by training DINOv2-based classifiers at several image resolutions. One grades each grain as Full, Broken, Rejected, Weak or Fatty, and the variety is then identified among the Full grains.",
+    limits: "Client work, so there is no public repo and no published numbers.",
+  },
+  gestvox: {
+    why: "Move the mouse, click and scroll with hand gestures, or talk to a full voice assistant, hands free on Windows.",
+    how: "MediaPipe tracks the hand. The index finger moves the cursor, a thumb and index pinch clicks or drags, thumb and pinky right-clicks, palm swipes go back and forward or switch windows, and a closed fist toggles voice mode. Voice starts on a wake word, runs speech to text on Groq Whisper or local faster-whisper, replies sentence by sentence and can be interrupted.",
+    result: "It hears English, Urdu, Punjabi and Urdu mixed with English, per sentence. It learns from corrections between sessions, tells users apart by voice with separate memory for each, and can use a remote camera over the local network or Tailscale. Destructive PC actions need spoken confirmation.",
+  },
+  "pashto-speech-recognition": {
+    why: "Pashto has about 60 million speakers and Whisper underserves it. The aim is to measure how much fine-tuning improves it, with the relative gain as the result, not a state-of-the-art claim.",
+    how: "Mozilla Common Voice Pashto, starting from openai/whisper-small. Training picks a GPU if there is one and falls back to CPU, saves a checkpoint every 200 steps, keeps the last three and resumes after an interruption. The eval script runs the stock model first, then the fine-tuned checkpoint, on up to 100 samples.",
+    limits: "It will not reach English-tier accuracy, and community-recorded audio varies in quality. You run the evaluation yourself to get the before and after numbers.",
+  },
+  "furuta-pendulum-rl": {
+    why: "Balance a rod on a spinning arm, a rotary inverted pendulum, with a policy small enough to run on a microcontroller.",
+    how: "A SAC agent trains in a custom physics simulator built on the standard Furuta pendulum equations, with optional random disturbance bumps. The policy reads four inputs (theta, theta_dot, alpha, alpha_dot), has two hidden layers of 64 units and exports as one dependency-free C header, furuta_policy_forward(), for a control loop at about 100 Hz.",
+    limits: "The mass, length and friction values are placeholders, not measured from hardware, and encoder noise, control delay and motor deadband are not simulated.",
+  },
+  "object-defect-detection": {
+    why: "Tell normal objects from defective ones across fruit, bottles, parcels, glass, aluminium and welds, with one model.",
+    how: "A merge script combines nine Roboflow Universe datasets, about 3,400 images by the README's per-dataset counts, into one train and validation split, and maps any class that is not clearly good to defect. YOLO11 trains on two classes, normal and defect. Training resumes after Ctrl+C or a crash, and detect.py reads a USB camera, an image or a video.",
+  },
+  "ai-meeting-summarizer": {
+    why: "Turn meeting audio or a pasted transcript into a summary, action items and key dates, then export it.",
+    how: "Whisper (whisper-small) transcribes the audio and BART (bart-large-cnn) writes the summary. The app pulls out action items and important dates with the context for each date, and exports a PDF with the summary, transcript, action items and dates.",
+    result: "A Django web app that takes an upload, a drag and drop or a live recording in the browser. A Gradio version runs the same pipeline, and a launcher packages it as a Windows build.",
+  },
+  "live-whiteboard": {
+    why: "Several people draw on one board at the same time and see each other's cursors move live. Boards are saved, so they are there when you come back.",
+    how: "React and Fabric.js in the browser, FastAPI with JWT login behind it. Every stroke, shape and text box gets an ID when it is created and goes to everyone on the board over WebSockets, along with cursor positions. MongoDB keeps each object as its own document and does not store cursors. Edits to different objects never conflict, and if two people edit the same one at once, the last write wins.",
+    limits: "No zoom or pan, the eraser removes whole objects, and anyone with a board ID can edit that board.",
+  },
+  "c-compiler-from-scratch": {
+    why: "A small compiler for a subset of C++, written in C++ to learn how compilers work.",
+    how: "A hand-written lexer, then a recursive-descent parser with basic semantic checks, then assembly generation. A small x86 assembler writes the binary. The same grammar is implemented twice, by hand and with Bison, and written down in grammar.md.",
+  },
+  "airbnb-clone-extended": {
+    why: "Recreate the Airbnb homepage as a working app, with login, listing pages, bookings and separate views for users, hosts and admins.",
+    how: "React on Vite with CSS modules for the responsive layout, and Node.js, Express and MongoDB behind it. JWT sign up and login, then role-based pages: a user profile, host listing management, and admin tools to add listings and manage users.",
+    result: "A homepage with a navbar, search bar, scrollable categories and listing cards, plus listing details and bookings.",
+  },
+};
+
 // ids double as deep links, like #work/scratchgpt
-PROJECTS.forEach((p) => (p.id = slug(p.title)));
+PROJECTS.forEach((p) => {
+  p.id = slug(p.title);
+  p.story = STORIES[p.id];
+});
 
 // What shows up across the projects. Every line is a fact from the cards above.
 export const NOTES = [
   { k: "Measured", t: "I report a baseline and an after: F1 0.8568 to 0.8896, real-frame accuracy 0% to 83%, Word Error Rate before and after fine-tuning." },
   { k: "Small enough to run", t: "VLMs over 80% smaller on one consumer GPU, people counting on CPU, hosted LLMs so backends need no GPU." },
   { k: "Shipped", t: "Flask, FastAPI and Django apps, a Windows tool you control with your hands, a C header for microcontrollers." },
+];
+
+
+// Short write-ups of things I measured or fixed. Numbers are from my resumes.
+export const LAB = [
+  {
+    id: "recall",
+    tag: "Document field detection",
+    title: "Precision slipped, recall jumped",
+    text: "The client's three-model pipeline scored 0.9394 precision and 0.7875 recall. One fine-tuned RF-DETR-Base scored 0.9335 and 0.8496. Precision is about the same, but the new model finds far more of the fields the old one missed, and F1 went from 0.8568 to 0.8896. I chose between runs from logged experiment results.",
+    nums: [
+      { v: "0.7875 to 0.8496", l: "recall" },
+      { v: "0.8568 to 0.8896", l: "F1" },
+    ],
+    project: "document-field-detection",
+  },
+  {
+    id: "ocr",
+    tag: "Document field detection",
+    title: "Some of the errors were the OCR",
+    text: "Part of the systematic error downstream came from poor OCR quality, not from the detector. Tesseract misread checkbox glyphs and corrupted text in low-resolution footers. DocTR resolved both, so I compared the two backends instead of tuning the detector further.",
+    nums: [
+      { v: "2", l: "OCR backends compared" },
+      { v: "DocTR", l: "fixed both problems" },
+    ],
+    project: "document-field-detection",
+  },
+  {
+    id: "zero",
+    tag: "Final year project",
+    title: "From 0% to 83% on real frames",
+    text: "Prior work misclassified real frames outright, with 0% accuracy on them. A Dual-DB routing system with a fine-tuned CLIP encoder took that to 83%. Before that, benchmarking SBI, AltFreezing and Face Warping Detection on FaceForensics++, Celeb-DF-v2 and HiDF had shown binary classifiers falling to near-chance accuracy on high-quality deepfakes, with no way to explain a prediction.",
+    nums: [
+      { v: "0% to 83%", l: "real-frame accuracy" },
+      { v: "3", l: "benchmark datasets" },
+    ],
+    project: "multimodal-deepfake-detection",
+  },
+  {
+    id: "small",
+    tag: "Final year project",
+    title: "Smaller models that still explain",
+    text: "ExDDV-Judge detects, explains, then judges. BLIP-2 T5-XL and LLaVA-Mini stand in for 11B and 7B VLMs, which cuts model size by over 80% and fits on a single consumer GPU. Pairing BLIP-2 with DeepfakeJudge gives explanations that carry a faithfulness score.",
+    nums: [
+      { v: ">80%", l: "smaller" },
+      { v: "1", l: "consumer GPU" },
+    ],
+    project: "multimodal-deepfake-detection",
+  },
+  {
+    id: "baseline",
+    tag: "Pashto speech recognition",
+    title: "Measure the stock model first",
+    text: "The Pashto repo is built around a baseline: run the stock Whisper model on the samples, fine-tune, then run the same samples again. The README says plainly that the result will not reach English-tier accuracy, and that the relative gain is the point.",
+    nums: [
+      { v: "~60M", l: "Pashto speakers" },
+      { v: "200", l: "steps between checkpoints" },
+    ],
+    project: "pashto-speech-recognition",
+  },
 ];
 
 // Shown under the hero buttons
@@ -329,7 +506,7 @@ ARCHIVE.forEach((a) => (a.featured = PROJECTS.some((p) => p.href === a.href)));
 export const ORBITS = [
   {
     name: "Vision",
-    color: "#ff5b2e",
+    color: "accent",
     words: ["YOLO", "RF-DETR", "DINOv2", "CLIP", "ByteTrack", "OpenCV", "Cellpose-SAM", "DocTR", "Tesseract"],
   },
   {
@@ -343,3 +520,14 @@ export const ORBITS = [
     words: ["Python", "C++", "Java", "SQL", "React", "Node.js", "FastAPI", "Flask", "MongoDB", "Git", "Linux", "Salesforce"],
   },
 ];
+
+// Where a tool shows up: project cards that list it and timeline roles that
+// mention it. Matching is plain text, so it only says what the cards say.
+const esc = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+export function usesOf(tool) {
+  const t = tool.toLowerCase();
+  const word = new RegExp(`(^|[^a-z0-9])${esc(t)}([^a-z0-9]|$)`, "i");
+  const cards = PROJECTS.filter((p) => p.short.toLowerCase() === t || p.stack.some((x) => x.toLowerCase().startsWith(t)));
+  const roles = ROLES.filter((r) => r.points.some((pt) => word.test(pt)));
+  return { cards, roles };
+}

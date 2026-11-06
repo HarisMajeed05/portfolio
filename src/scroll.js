@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Lenis from "lenis";
+import { sfx } from "./sound";
 
 // One shared scroll state. The DOM sections and the WebGL world both read it,
 // the world never touches React state per frame.
@@ -17,6 +18,16 @@ export const S = {
   tops: [],
   heights: [],
   reduced: false,
+  // seconds (performance.now based) when the loader lifted, drives the intro
+  t0: -1,
+  // loader checklist: fonts, portrait, scene
+  boot: {},
+  // tool picked on the orbits, and the set of project ids that list it
+  tool: null,
+  hl: null,
+  // 1 while a case study is open, f is the smoothed copy the camera reads
+  focus: 0,
+  f: 0,
 };
 
 let lenis = null;
@@ -99,15 +110,27 @@ export function initScroll() {
   onScroll(window.scrollY);
 }
 
+// marks one loader step done
+export function ready(name) {
+  S.boot[name] = true;
+  window.dispatchEvent(new Event("boot"));
+}
+
+// called once when the loader lifts, the portrait and the camera start from here
+export function reveal() {
+  S.t0 = S.reduced ? 0.001 : performance.now() / 1000;
+}
+
 export function goTo(i) {
   const top = S.tops[i] ?? 0;
   if (lenis) lenis.scrollTo(top, { duration: 2.4, easing: (t) => 1 - Math.pow(1 - t, 4) });
   else window.scrollTo({ top });
 }
 
-// scroll to an absolute y. d = 0 jumps with no animation
-export function goToY(y, d = 1.6) {
-  if (lenis) lenis.scrollTo(y, d === 0 ? { immediate: true } : { duration: d, easing: (t) => 1 - Math.pow(1 - t, 3) });
+// scroll to an absolute y. d = 0 jumps with no animation, force works while
+// the page is locked behind a drawer
+export function goToY(y, d = 1.6, force = false) {
+  if (lenis) lenis.scrollTo(y, d === 0 ? { immediate: true, force } : { duration: d, force, easing: (t) => 1 - Math.pow(1 - t, 3) });
   else window.scrollTo({ top: y });
 }
 
@@ -120,14 +143,18 @@ export function lock(on) {
 }
 
 // scrolls so that pinned chapter i sits at inner progress u
-export function goToProgress(i, u) {
+export function goToProgress(i, u, force = false) {
   const pin = Math.max(1, S.heights[i] - S.vh);
   const top = S.tops[i] + pin * u;
-  if (lenis) lenis.scrollTo(top, { duration: 1.4, easing: (t) => 1 - Math.pow(1 - t, 3) });
+  if (lenis) lenis.scrollTo(top, { duration: 1.4, force, easing: (t) => 1 - Math.pow(1 - t, 3) });
   else window.scrollTo({ top });
 }
 
 // shared helpers for the world
+// R3F listens on #root, so a click on a drawer or a button still raycasts the scene behind it.
+// I only let the scene react when nothing sits in front of the canvas. .arc covers the moment a sheet is closing.
+export const onScene = (e) =>
+  !document.documentElement.dataset.modal && !e.nativeEvent.target.closest?.("a,button,input,textarea,.arc");
 export const clamp01 = (x) => Math.min(1, Math.max(0, x));
 export const smooth = (a, b, x) => {
   const t = clamp01((x - a) / (b - a));
@@ -153,6 +180,7 @@ export function useStop(chapter, n) {
       if (now !== last) {
         last = now;
         setK(now);
+        sfx.pass();
       }
       raf = requestAnimationFrame(tick);
     };

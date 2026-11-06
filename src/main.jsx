@@ -10,6 +10,8 @@ import "@fontsource/geist-mono/500.css";
 import "./index.css";
 import { initScroll } from "./scroll";
 import { initNav } from "./nav";
+import { initAccent } from "./theme";
+import { initLens } from "./lens";
 
 function hasWebGL() {
   try {
@@ -24,6 +26,10 @@ function hasWebGL() {
 // ?view=plain, or a browser with no WebGL, gets the light page and never
 // downloads three.js
 const plain = new URLSearchParams(location.search).get("view") === "plain" || !hasWebGL();
+
+// saved accent and ?lens= links apply before anything renders
+initAccent();
+initLens();
 
 (plain ? import("./plain") : import("./App")).then(({ default: Root }) => {
   createRoot(document.getElementById("root")).render(

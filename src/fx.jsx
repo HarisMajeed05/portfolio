@@ -109,7 +109,8 @@ export function Cursor() {
       const k = 1 - Math.exp(-dt * 20);
       // pages move under a still pointer, so look again now and then
       if (++n % 6 === 0) hit = document.elementFromPoint(px, py)?.closest("a,button,[data-hit]") || null;
-      const sceneHit = root.dataset.hit;
+      // I skip the scene label while a sheet is open, because the sheet sits in front of the canvas
+      const sceneHit = root.dataset.modal ? "" : root.dataset.scene;
       let tx;
       let ty;
       let tw;

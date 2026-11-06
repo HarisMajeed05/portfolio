@@ -1,7 +1,8 @@
 import { CHAPTERS, PROJECTS, ROLES } from "./data";
 import { S, goTo, goToY, hold } from "./scroll";
+import { sfx } from "./sound";
+import { cycleAccent } from "./theme";
 
-const base = import.meta.env.BASE_URL;
 const fire = (name) => window.dispatchEvent(new Event(name));
 
 // how many stops each chapter has, the keys step through them
@@ -46,14 +47,35 @@ function onKey(e) {
   else if (k === "End") goTo(5);
   else if (/^[1-6]$/.test(k)) goTo(+k - 1);
   else if (k === "a") fire("archive-open");
-  else if (k === "p") location.href = `${base}?view=plain`;
-  else if (k === "?") fire("help-toggle");
+  else if (k === "n") fire("notes-open");
+  else if (k === "s") sfx.toggle();
+  else if (k === "c") cycleAccent();
+  else if (k === "/") {
+    e.preventDefault();
+    fire("palette-open");
+  } else if (k === "p") {
+    // keep ?lens= and ?accent= when switching to the plain page
+    const u = new URL(location.href);
+    u.hash = "";
+    u.searchParams.set("view", "plain");
+    location.href = u;
+  } else if (k === "?") fire("help-toggle");
 }
 
-// #work/scratchgpt style links, read once on load, written while you scroll
+// scrolls the ring to a project. force lets it work behind an open drawer
+export function goToProject(id, force = false) {
+  const k = PROJECTS.findIndex((p) => p.id === id);
+  if (k < 0) return;
+  const pin = Math.max(0, S.heights[3] - S.vh);
+  goToY(S.tops[3] + pin * (k / (PROJECTS.length - 1)), 2.2, force);
+}
+
+// #work/scratchgpt style links, read once on load, written while you scroll.
+// #work/scratchgpt/story opens that case study too
 function readHash() {
-  const [ch, sub] = location.hash.slice(1).split("/");
+  const [ch, sub, extra] = location.hash.slice(1).split("/");
   if (ch === "archive") return fire("archive-open");
+  if (ch === "notes") return fire("notes-open");
   const i = CHAPTERS.findIndex((c) => c.id === ch);
   if (i < 0) return;
   let y = S.tops[i];
@@ -64,6 +86,9 @@ function readHash() {
     if (k >= 0) y += Math.max(0, S.heights[i] - S.vh) * (k / (n - 1));
   }
   goToY(y, 0);
+  if (i === 3 && extra === "story" && PROJECTS.some((p) => p.id === sub)) {
+    window.dispatchEvent(new CustomEvent("story-open", { detail: sub }));
+  }
 }
 
 export function initNav() {

@@ -1,8 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { ME, BRIEF, STATS, STATUS, NOTES, ROLES, PROJECTS, ARCHIVE, ORBITS, RESUMES } from "./data";
-import { S, goTo, useStop } from "./scroll";
+import { ME, BRIEF, STATS, STATUS, NOTES, ROLES, PROJECTS, ARCHIVE, ORBITS, RESUMES, LENSES, usesOf } from "./data";
+import { S, goTo, goToProgress, useStop } from "./scroll";
 import { Split, Decode } from "./fx";
 import { openArchive } from "./archive";
+import { openStory, openNotes } from "./story";
+import { openCompose } from "./compose";
+import { setLens, useLens } from "./lens";
+import { tint } from "./theme";
+import { useTool, clearTool } from "./pick";
+import { usePulse, ago } from "./pulse";
 
 const base = import.meta.env.BASE_URL;
 const pad = (n) => String(n).padStart(2, "0");
@@ -33,6 +39,7 @@ function Count({ s }) {
 }
 
 export function Hero() {
+  const lens = useLens();
   return (
     <section id="intro" data-chapter className="sec hero">
       <div data-panel="0" className="panel">
@@ -46,8 +53,8 @@ export function Hero() {
               Majeed <em>Raja</em>
             </span>
           </h1>
-          <p className="lede reveal" style={{ "--d": "0.5s" }}>
-            I build computer vision systems that read documents, count crowds and catch fakes, then ship them as working software.
+          <p className="lede reveal" style={{ "--d": "0.5s" }} key={lens.id}>
+            {lens.lede}
           </p>
           <div className="cta reveal" style={{ "--d": "0.64s" }}>
             <button className="btn hot" onClick={() => goTo(1)}>
@@ -59,6 +66,14 @@ export function Hero() {
             <a className="btn" href={ME.linkedin} target="_blank" rel="noreferrer noopener">
               LinkedIn ↗
             </a>
+          </div>
+          <div className="lens mono reveal" style={{ "--d": "0.72s" }} role="group" aria-label="Read me as">
+            <span>Read me as</span>
+            {LENSES.map((l) => (
+              <button key={l.id} className={l.id === lens.id ? "on" : ""} aria-pressed={l.id === lens.id} onClick={() => setLens(l.id)}>
+                {l.label}
+              </button>
+            ))}
           </div>
           <dl className="status mono reveal" style={{ "--d": "0.8s" }}>
             {STATUS.map((x) => (
@@ -78,6 +93,7 @@ export function Hero() {
 }
 
 export function Brief() {
+  const lens = useLens();
   return (
     <section id="brief" data-chapter className="sec brief">
       <div data-panel="1" className="panel">
@@ -89,7 +105,9 @@ export function Brief() {
             <Split text={BRIEF.lead} /> <Split em text={BRIEF.em} from={4} />
           </h2>
           <p className="body">{BRIEF.body}</p>
-          <p className="body dim">{BRIEF.ask}</p>
+          <p className="body dim" key={lens.id}>
+            {lens.ask}
+          </p>
         </div>
         <dl className="stats">
           {STATS.map((s) => (
@@ -150,10 +168,11 @@ export function Timeline() {
 
 export function Work() {
   const k = useStop(3, PROJECTS.length);
+  useLens();
   const p = PROJECTS[k];
   const [copied, setCopied] = useState(false);
   const share = () => {
-    const url = `${location.origin}${location.pathname}#work/${p.id}`;
+    const url = `${location.origin}${location.pathname}${location.search}#work/${p.id}`;
     navigator.clipboard?.writeText(url).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1600);
@@ -171,7 +190,8 @@ export function Work() {
               <Split text={`${WORDS[PROJECTS.length] || PROJECTS.length} projects, one ring`} />
             </h2>
             <p className="hint mono">
-              Scroll <span className="fine-only">or use the arrow keys </span>to turn it. Click or tap a card to open it.
+              <span className="fine-only">Scroll or use the arrow keys to turn it. Click the front card for the case study.</span>
+              <span className="coarse-only">Tap the front card for the case study.</span>
             </p>
             <button className="btn all" onClick={openArchive} data-hit="archive">
               All {ARCHIVE.length} repositories <span aria-hidden="true">↗</span>
@@ -195,13 +215,18 @@ export function Work() {
                     <li key={s}>{s}</li>
                   ))}
                 </ul>
-                {p.href ? (
-                  <a className="btn hot" href={p.href} target="_blank" rel="noreferrer noopener">
-                    {p.hrefLabel || "View on GitHub"} ↗
-                  </a>
-                ) : (
-                  <span className="mono note">{p.note}</span>
-                )}
+                <div className="cap-btns">
+                  <button className="btn hot" onClick={() => openStory(p.id)} data-hit="case study">
+                    Case study <span aria-hidden="true">→</span>
+                  </button>
+                  {p.href ? (
+                    <a className="btn" href={p.href} target="_blank" rel="noreferrer noopener">
+                      {p.hrefLabel || "GitHub"} ↗
+                    </a>
+                  ) : (
+                    <span className="mono note">{p.note}</span>
+                  )}
+                </div>
               </div>
             </div>
           </article>
@@ -211,9 +236,47 @@ export function Work() {
   );
 }
 
-export function Stack() {
+// what the picked tool is listed on
+function Picked() {
+  const tool = useTool();
+  if (!tool) return null;
+  const { cards, roles } = usesOf(tool);
+  const jump = (id) => {
+    const i = PROJECTS.findIndex((x) => x.id === id);
+    goToProgress(3, i / (PROJECTS.length - 1));
+  };
   return (
-    <section id="stack" data-chapter className="sec pinned stack">
+    <div className="picked mono" role="status">
+      <p>
+        <b>{tool}</b>
+        <button className="lnk mono" onClick={clearTool}>
+          Clear
+        </button>
+      </p>
+      {cards.length ? (
+        <p className="picked-l">
+          On {cards.length} project {cards.length > 1 ? "cards" : "card"}:{" "}
+          {cards.map((c, i) => (
+            <span key={c.id}>
+              <button className="picked-b" onClick={() => jump(c.id)}>
+                {c.title}
+              </button>
+              {i < cards.length - 1 ? ", " : ""}
+            </span>
+          ))}
+        </p>
+      ) : (
+        <p className="picked-l">No project card lists it.</p>
+      )}
+      {roles.length > 0 && <p className="picked-l">In the timeline: {roles.map((r) => r.big).join(", ")}</p>}
+    </div>
+  );
+}
+
+export function Stack() {
+  const tool = useTool();
+  return (
+    <section id="stack" data-chapter className={`sec pinned stack ${tool ? "pick" : ""}`}>
       <div className="stick">
         <div data-panel="4" className="panel">
           <div className="head">
@@ -223,7 +286,14 @@ export function Stack() {
             <h2 className="h2 sm">
               <Split text="Three orbits" />
             </h2>
-            <p className="hint mono">Move your pointer. The rings follow.</p>
+            <p className="hint mono">
+              <span className="fine-only">Move your pointer. The rings follow. Click a tool to see where it shows up.</span>
+              <span className="coarse-only">Tap a tool to see which projects use it.</span>
+            </p>
+            <button className="btn all" onClick={openNotes} data-hit="lab notes">
+              Lab notes <span aria-hidden="true">↗</span>
+            </button>
+            <Picked />
           </div>
           <ol className="notes">
             {NOTES.map((n, i) => (
@@ -237,7 +307,7 @@ export function Stack() {
           </ol>
           <ul className="legend mono">
             {ORBITS.map((o) => (
-              <li key={o.name} style={{ "--c": o.color }}>
+              <li key={o.name} style={{ "--c": tint(o.color) }}>
                 <i /> {o.name} <span>{pad(o.words.length)}</span>
               </li>
             ))}
@@ -266,6 +336,21 @@ function CopyMail() {
   );
 }
 
+function Pulse() {
+  const d = usePulse();
+  if (!d) return null;
+  return (
+    <p className="pulse mono">
+      <b>
+        <i className="dot" /> GitHub, live
+      </b>
+      <span>{d.repos} public repos</span>
+      {d.last && <span>Last push {ago(d.last)}</span>}
+      {d.langs.length > 0 && <span>Mostly {d.langs.join(", ")}</span>}
+    </p>
+  );
+}
+
 export function Contact() {
   return (
     <section id="contact" data-chapter className="sec contact">
@@ -288,13 +373,18 @@ export function Contact() {
           </div>
           <div className="cols mono">
             <div>
-              <h4>Elsewhere</h4>
+              <h4>Find me</h4>
               <a href={ME.github} target="_blank" rel="noreferrer noopener">
                 GitHub ↗
               </a>
               <a href={ME.linkedin} target="_blank" rel="noreferrer noopener">
                 LinkedIn ↗
               </a>
+              {ME.form && (
+                <button className="ln" onClick={openCompose} data-hit="message">
+                  Write a message
+                </button>
+              )}
             </div>
             <div>
               <h4>Résumé (PDF)</h4>
@@ -310,6 +400,7 @@ export function Contact() {
               <span>UTC+5</span>
             </div>
           </div>
+          <Pulse />
         </div>
         <p className="foot mono">
           © 2026 {ME.name}. Built with React, three.js and Lenis. <a href={`${base}?view=plain`}>Plain version</a>

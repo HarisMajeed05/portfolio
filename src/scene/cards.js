@@ -1,8 +1,8 @@
 import * as THREE from "three";
+import { ACCENT } from "../theme";
 
 export const CARD_W = 1024;
 export const CARD_H = 680;
-const ORANGE = "#ff5b2e";
 const PAPER = "#ece8df";
 const ICE = "#8fd8ff";
 const MONO = '"Geist Mono", ui-monospace, monospace';
@@ -22,7 +22,7 @@ const a = (c, o) => {
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${o})`;
 };
 
-function label(ctx, text, x, y, color = ORANGE, size = 20) {
+function label(ctx, text, x, y, color = ACCENT, size = 20) {
   ctx.font = `500 ${size}px ${MONO}`;
   const w = ctx.measureText(text).width + 16;
   ctx.fillStyle = color;
@@ -32,7 +32,7 @@ function label(ctx, text, x, y, color = ORANGE, size = 20) {
   ctx.fillText(text, x + 8, y);
 }
 
-function box(ctx, x, y, w, h, color = ORANGE, lw = 3) {
+function box(ctx, x, y, w, h, color = ACCENT, lw = 3) {
   ctx.strokeStyle = color;
   ctx.lineWidth = lw;
   ctx.strokeRect(x, y, w, h);
@@ -45,10 +45,10 @@ const ART = {
     const by = y + h / 2 - 46;
     names.forEach((n, i) => {
       const bx = x + i * (bw + 80);
-      ctx.fillStyle = i === 2 ? a(ORANGE, 0.16) : a(PAPER, 0.05);
+      ctx.fillStyle = i === 2 ? a(ACCENT, 0.16) : a(PAPER, 0.05);
       ctx.fillRect(bx, by, bw, 92);
-      box(ctx, bx, by, bw, 92, i === 2 ? ORANGE : a(PAPER, 0.5), 2);
-      ctx.fillStyle = i === 2 ? ORANGE : PAPER;
+      box(ctx, bx, by, bw, 92, i === 2 ? ACCENT : a(PAPER, 0.5), 2);
+      ctx.fillStyle = i === 2 ? ACCENT : PAPER;
       ctx.font = `500 26px ${MONO}`;
       ctx.textAlign = "center";
       ctx.fillText(n, bx + bw / 2, by + 56);
@@ -85,10 +85,10 @@ const ART = {
       const bh = 30 + r() * 26;
       const bx = x + 40 + r() * (w - bw - 80);
       const by = y + 30 + (i * (h - 80)) / names.length + r() * 10;
-      ctx.fillStyle = a(ORANGE, 0.08);
+      ctx.fillStyle = a(ACCENT, 0.08);
       ctx.fillRect(bx, by, bw, bh);
       box(ctx, bx, by, bw, bh);
-      label(ctx, `${n} 0.${88 + Math.floor(r() * 11)}`, bx, by - 6, ORANGE, 15);
+      label(ctx, `${n} 0.${88 + Math.floor(r() * 11)}`, bx, by - 6, ACCENT, 15);
     });
   },
   graph(ctx, x, y, w, h, r) {
@@ -101,7 +101,7 @@ const ART = {
       pts.push([cx + Math.cos(ang) * rad * 1.5, cy + Math.sin(ang) * rad * 0.9]);
     }
     pts.forEach(([px, py], i) => {
-      ctx.strokeStyle = a(i < 3 ? ORANGE : PAPER, i < 3 ? 0.9 : 0.25);
+      ctx.strokeStyle = a(i < 3 ? ACCENT : PAPER, i < 3 ? 0.9 : 0.25);
       ctx.lineWidth = i < 3 ? 2.5 : 1.5;
       ctx.beginPath();
       ctx.moveTo(cx, cy);
@@ -109,7 +109,7 @@ const ART = {
       ctx.stroke();
     });
     pts.forEach(([px, py], i) => {
-      ctx.fillStyle = i < 3 ? ORANGE : a(PAPER, 0.55);
+      ctx.fillStyle = i < 3 ? ACCENT : a(PAPER, 0.55);
       ctx.fillRect(px - 9, py - 11, 18, 22);
     });
     ctx.fillStyle = PAPER;
@@ -121,7 +121,7 @@ const ART = {
     ctx.fillText("query  >  top-k chunks  >  cited answer", x, y + h - 10);
   },
   tracks(ctx, x, y, w, h, r) {
-    ctx.strokeStyle = ORANGE;
+    ctx.strokeStyle = ACCENT;
     ctx.lineWidth = 3;
     ctx.setLineDash([14, 10]);
     ctx.beginPath();
@@ -150,7 +150,7 @@ const ART = {
     }
   },
   grains(ctx, x, y, w, h, r) {
-    const cols = [PAPER, ORANGE, ICE, a(PAPER, 0.35), "#c9a36b"];
+    const cols = [PAPER, ACCENT, ICE, a(PAPER, 0.35), "#c9a36b"];
     const names = ["Full", "Broken", "Rejected", "Weak", "Fatty"];
     for (let j = 0; j < 6; j++) {
       for (let i = 0; i < 22; i++) {
@@ -192,8 +192,8 @@ const ART = {
           ctx.lineTo(px, py);
         }
         ctx.stroke();
-        box(ctx, bx + bw * 0.1, py - 46, bw * 0.8, 86, ORANGE, 3);
-        label(ctx, "defect 0.9" + Math.floor(r() * 9), bx + bw * 0.1, py - 52, ORANGE, 15);
+        box(ctx, bx + bw * 0.1, py - 46, bw * 0.8, 86, ACCENT, 3);
+        label(ctx, "defect 0.9" + Math.floor(r() * 9), bx + bw * 0.1, py - 52, ACCENT, 15);
       } else {
         label(ctx, "normal 0.97", bx, y + 18, ICE, 15);
       }
@@ -202,7 +202,7 @@ const ART = {
   wave(ctx, x, y, w, h, r) {
     for (let i = 0; i < 40; i++) {
       const bh = 14 + r() * 100 * Math.sin((i / 40) * Math.PI);
-      ctx.fillStyle = i > 28 ? a(PAPER, 0.25) : ORANGE;
+      ctx.fillStyle = i > 28 ? a(PAPER, 0.25) : ACCENT;
       ctx.fillRect(x + i * 9, y + h / 2 - bh / 2, 5, bh);
     }
     ["summary", "action items", "dates"].forEach((t, i) => {
@@ -216,10 +216,10 @@ const ART = {
   },
   tree(ctx, x, y, w, h) {
     const node = (nx, ny, t, hot) => {
-      ctx.fillStyle = hot ? a(ORANGE, 0.2) : a(PAPER, 0.06);
+      ctx.fillStyle = hot ? a(ACCENT, 0.2) : a(PAPER, 0.06);
       ctx.fillRect(nx - 58, ny - 20, 116, 40);
-      box(ctx, nx - 58, ny - 20, 116, 40, hot ? ORANGE : a(PAPER, 0.5), 2);
-      ctx.fillStyle = hot ? ORANGE : PAPER;
+      box(ctx, nx - 58, ny - 20, 116, 40, hot ? ACCENT : a(PAPER, 0.5), 2);
+      ctx.fillStyle = hot ? ACCENT : PAPER;
       ctx.font = `500 19px ${MONO}`;
       ctx.textAlign = "center";
       ctx.fillText(t, nx, ny + 7);
@@ -264,10 +264,10 @@ const ART = {
     ["SwiGLU", "GQA + RoPE", "RMSNorm"].forEach((t, i) => {
       const by = y + 24 + i * 70;
       const hot = i === 1;
-      ctx.fillStyle = hot ? a(ORANGE, 0.18) : a(PAPER, 0.05);
+      ctx.fillStyle = hot ? a(ACCENT, 0.18) : a(PAPER, 0.05);
       ctx.fillRect(sx, by, 300, 54);
-      box(ctx, sx, by, 300, 54, hot ? ORANGE : a(PAPER, 0.5), 2);
-      ctx.fillStyle = hot ? ORANGE : PAPER;
+      box(ctx, sx, by, 300, 54, hot ? ACCENT : a(PAPER, 0.5), 2);
+      ctx.fillStyle = hot ? ACCENT : PAPER;
       ctx.font = `500 23px ${MONO}`;
       ctx.textAlign = "center";
       ctx.fillText(t, sx + 150, by + 35);
@@ -290,7 +290,7 @@ const ART = {
     const bx = x + w - 220;
     for (let i = 0; i < 8; i++) {
       const bh = i === 3 ? 150 : 16 + r() * 70;
-      ctx.fillStyle = i === 3 ? ORANGE : a(PAPER, 0.3);
+      ctx.fillStyle = i === 3 ? ACCENT : a(PAPER, 0.3);
       ctx.fillRect(bx + i * 26, y + h - 44 - bh, 18, bh);
     }
     ctx.fillStyle = a(PAPER, 0.55);
@@ -333,12 +333,12 @@ const ART = {
       }),
     );
     const [qx, qy] = P(-42, -152);
-    ctx.strokeStyle = ORANGE;
+    ctx.strokeStyle = ACCENT;
     ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.arc(qx, qy, 17, 0, Math.PI * 2);
     ctx.stroke();
-    box(ctx, ox - 82 * s, oy - 192 * s, 172 * s, 200 * s, ORANGE, 3);
+    box(ctx, ox - 82 * s, oy - 192 * s, 172 * s, 200 * s, ACCENT, 3);
     label(ctx, "pinch", ox - 82 * s, oy - 192 * s - 2);
     [
       ["pinch", "click"],
@@ -351,7 +351,7 @@ const ART = {
       ctx.fillText(g, x + w * 0.5, ry);
       ctx.fillStyle = a(PAPER, 0.4);
       ctx.fillText("->", x + w * 0.5 + 100, ry);
-      ctx.fillStyle = ORANGE;
+      ctx.fillStyle = ACCENT;
       ctx.fillText(act, x + w * 0.5 + 160, ry);
       ctx.fillStyle = a(PAPER, 0.12);
       ctx.fillRect(x + w * 0.5, ry + 14, w * 0.42, 2);
@@ -370,16 +370,16 @@ const ART = {
     rows.forEach(([name, bad], ri) => {
       const ry = y + 104 + ri * 62;
       ctx.font = `500 21px ${MONO}`;
-      ctx.fillStyle = ri ? ORANGE : a(PAPER, 0.7);
+      ctx.fillStyle = ri ? ACCENT : a(PAPER, 0.7);
       ctx.fillText(name, x, ry + 28);
       for (let i = 0; i < 8; i++) {
         const cx = x + 110 + i * 94;
         const wrong = bad.includes(i);
-        ctx.fillStyle = wrong ? a(ORANGE, 0.22) : a(PAPER, 0.07);
+        ctx.fillStyle = wrong ? a(ACCENT, 0.22) : a(PAPER, 0.07);
         ctx.fillRect(cx, ry, 82, 40);
-        box(ctx, cx, ry, 82, 40, wrong ? ORANGE : a(PAPER, 0.4), 2);
+        box(ctx, cx, ry, 82, 40, wrong ? ACCENT : a(PAPER, 0.4), 2);
         if (wrong) {
-          ctx.strokeStyle = ORANGE;
+          ctx.strokeStyle = ACCENT;
           ctx.lineWidth = 2;
           ctx.beginPath();
           ctx.moveTo(cx + 10, ry + 20);
@@ -423,13 +423,13 @@ const ART = {
     ctx.moveTo(px, hubY);
     ctx.lineTo(ex, ey);
     ctx.stroke();
-    ctx.strokeStyle = ORANGE;
+    ctx.strokeStyle = ACCENT;
     ctx.lineWidth = 5;
     ctx.beginPath();
     ctx.moveTo(ex, ey);
     ctx.lineTo(ex + 8, y + 36);
     ctx.stroke();
-    ctx.fillStyle = ORANGE;
+    ctx.fillStyle = ACCENT;
     ctx.beginPath();
     ctx.arc(ex + 8, y + 36, 12, 0, Math.PI * 2);
     ctx.fill();
@@ -449,7 +449,7 @@ const ART = {
       ["float obs[4] = {th, th_d,", PAPER],
       ["                al, al_d};", PAPER],
       ["float action =", PAPER],
-      ["  furuta_policy_forward(obs);", ORANGE],
+      ["  furuta_policy_forward(obs);", ACCENT],
       ["// 2 x 64 hidden, about 100 Hz", a(PAPER, 0.5)],
     ].forEach(([t, c], i) => {
       ctx.fillStyle = c;
@@ -496,7 +496,7 @@ const ART = {
       ctx.fill();
       label(ctx, name, cx + 20, cy + 58, c, 18);
     };
-    cursor(x + 280, y + 140, ORANGE, "you");
+    cursor(x + 280, y + 140, ACCENT, "you");
     cursor(x + 730, y + 50, ICE, "guest");
   },
   listings(ctx, x, y, w) {
@@ -512,7 +512,7 @@ const ART = {
       ctx.font = `500 19px ${MONO}`;
       ctx.fillText(t, px + 34 + i * 140, y + 31);
     });
-    ctx.fillStyle = ORANGE;
+    ctx.fillStyle = ACCENT;
     ctx.beginPath();
     ctx.arc(px + pw - 24, y + 25, 14, 0, Math.PI * 2);
     ctx.fill();
@@ -522,10 +522,10 @@ const ART = {
       const cx = x + i * (cw + gap);
       const cy = y + 68;
       const hot = i === 1;
-      ctx.fillStyle = hot ? a(ORANGE, 0.14) : a(PAPER, 0.06);
+      ctx.fillStyle = hot ? a(ACCENT, 0.14) : a(PAPER, 0.06);
       ctx.fillRect(cx, cy, cw, 162);
-      box(ctx, cx, cy, cw, 162, hot ? ORANGE : a(PAPER, 0.35), 2);
-      ctx.strokeStyle = hot ? ORANGE : a(PAPER, 0.55);
+      box(ctx, cx, cy, cw, 162, hot ? ACCENT : a(PAPER, 0.35), 2);
+      ctx.strokeStyle = hot ? ACCENT : a(PAPER, 0.55);
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(cx + cw / 2 - 34, cy + 72);
@@ -573,7 +573,7 @@ export function makeCardTexture(p, i, n, aniso = 8) {
   ctx.strokeRect(1, 1, CARD_W - 2, CARD_H - 2);
 
   // detector corners
-  ctx.strokeStyle = ORANGE;
+  ctx.strokeStyle = ACCENT;
   ctx.lineWidth = 6;
   const L = 54;
   const m = 14;
@@ -592,7 +592,7 @@ export function makeCardTexture(p, i, n, aniso = 8) {
 
   ctx.textBaseline = "alphabetic";
   ctx.font = `500 26px ${MONO}`;
-  ctx.fillStyle = ORANGE;
+  ctx.fillStyle = ACCENT;
   ctx.fillText(`${String(i + 1).padStart(2, "0")} / ${String(n).padStart(2, "0")}`, 54, 70);
   ctx.fillStyle = a(PAPER, 0.62);
   ctx.textAlign = "right";

@@ -5,7 +5,8 @@ import * as THREE from "three";
 import { ROLES } from "../data";
 import { S, hold, smooth, clamp01 } from "../scroll";
 import { GATE_Z0, GATE_GAP, GX } from "./stage";
-import { Bracket, Tag, FONT, lineMaterial, ORANGE, PAPER } from "./parts";
+import { Bracket, Tag, FONT, lineMaterial, useAccentMat, PAPER } from "./parts";
+import { ACCENT, A, useAccent } from "../theme";
 
 const GW = 7.2;
 const GH = 4.3;
@@ -19,7 +20,9 @@ function Gate({ role, i, mats }) {
     () => new THREE.MeshBasicMaterial({ color: "#07080b", transparent: true, opacity: 0.55, depthWrite: false }),
     [],
   );
-  const ping = useMemo(() => lineMaterial(ORANGE, 0), []);
+  const ping = useMemo(() => lineMaterial(ACCENT, 0), []);
+  useAccentMat(ping);
+  const accent = useAccent();
   const pingG = useRef();
   const texts = useRef([]);
   useEffect(() => {
@@ -69,7 +72,7 @@ function Gate({ role, i, mats }) {
         ref={(t) => (texts.current[2] = t)}
         font={FONT.mono}
         fontSize={0.17}
-        color={ORANGE}
+        color={accent}
         anchorX="right"
         anchorY="bottom"
         position={[GW / 2 - 0.35, -GH / 2 + 0.3, 0.05]}
@@ -97,7 +100,8 @@ const AMBIENT = [
 ];
 
 function Ambient() {
-  const mat = useMemo(() => lineMaterial(ORANGE, 0.5), []);
+  const mat = useMemo(() => lineMaterial(ACCENT, 0.5), []);
+  useAccentMat(mat);
   return AMBIENT.map(([label, side, dx, y, z, w, h], i) => (
     <group key={i} position={[side * dx, y, z]} rotation={[0, -side * 0.5, 0]}>
       <Bracket w={w} h={h} len={0.3} thick={0.025} material={mat} />
@@ -149,10 +153,15 @@ function Rails() {
 export default function Tunnel() {
   const mats = useRef([]);
   const root = useRef();
-  const orange = useMemo(() => new THREE.Color(ORANGE), []);
+  const orange = useMemo(() => new THREE.Color(ACCENT), []);
   const paper = useMemo(() => new THREE.Color(PAPER), []);
+  const seen = useRef(A.v);
 
   useFrame((state) => {
+    if (seen.current !== A.v) {
+      seen.current = A.v;
+      orange.set(ACCENT);
+    }
     root.current.visible = S.c > 1.3 && S.c < 3.5;
     const t = state.clock.elapsedTime;
     const p = hold(S.u[2], ROLES.length);

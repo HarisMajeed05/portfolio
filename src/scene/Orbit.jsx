@@ -3,9 +3,11 @@ import { useFrame } from "@react-three/fiber";
 import { Billboard, Text } from "@react-three/drei";
 import * as THREE from "three";
 import { ORBITS } from "../data";
-import { S, smooth } from "../scroll";
+import { S, smooth, onScene } from "../scroll";
+import { ACCENT, tint3d, useAccent } from "../theme";
+import { pickTool, useTool } from "../pick";
 import { ORBIT_Z } from "./stage";
-import { FONT } from "./parts";
+import { FONT, useAccentMat } from "./parts";
 
 const RADII = [2.7, 4.0, 5.3];
 const TILT = [
@@ -17,9 +19,12 @@ const SPEED = [0.22, -0.15, 0.1];
 
 function Orbit({ cfg, r, tilt, speed, k, narrow }) {
   const spin = useRef();
+  useAccent();
+  const col = tint3d(cfg.color);
+  const tool = useTool();
   const line = useMemo(
-    () => new THREE.MeshBasicMaterial({ color: cfg.color, transparent: true, opacity: 0.4, toneMapped: false }),
-    [cfg.color],
+    () => new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.4, toneMapped: false }),
+    [col],
   );
   useFrame((state) => {
     spin.current.rotation.y = state.clock.elapsedTime * speed + S.u[4] * (k % 2 ? -2.4 : 2.4);
@@ -33,16 +38,34 @@ function Orbit({ cfg, r, tilt, speed, k, narrow }) {
       <group ref={spin}>
         {cfg.words.map((w, i) => {
           const a = (i / n) * Math.PI * 2;
+          const on = tool === w;
           return (
             <Billboard key={w} position={[Math.cos(a) * r, 0, Math.sin(a) * r]}>
-              <mesh>
+              <mesh
+                onClick={(e) => {
+                  if (Math.abs(S.c - 4) > 0.3 || !onScene(e)) return;
+                  e.stopPropagation();
+                  pickTool(w);
+                }}
+                onPointerOver={(e) => {
+                  if (Math.abs(S.c - 4) > 0.3 || !onScene(e)) return;
+                  e.stopPropagation();
+                  document.documentElement.dataset.scene = on ? "clear" : "show projects";
+                }}
+                onPointerOut={() => delete document.documentElement.dataset.scene}
+              >
+                {/* a bigger invisible target, the dot alone is too small to hit */}
+                <planeGeometry args={[Math.max(0.9, w.length * 0.2), narrow ? 0.9 : 0.6]} />
+                <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+              </mesh>
+              <mesh scale={on ? 2.2 : 1}>
                 <circleGeometry args={[0.06, 12]} />
-                <meshBasicMaterial color={cfg.color} toneMapped={false} />
+                <meshBasicMaterial color={on ? "#ffffff" : col} toneMapped={false} />
               </mesh>
               <Text
                 font={FONT.sans}
                 fontSize={narrow ? 0.34 : 0.25}
-                color={cfg.color}
+                color={on ? "#ffffff" : col}
                 anchorX="center"
                 anchorY="bottom"
                 position={[0, 0.14, 0]}
@@ -67,9 +90,10 @@ export default function Orbits({ narrow }) {
     [],
   );
   const coreHot = useMemo(
-    () => new THREE.MeshBasicMaterial({ color: "#ff5b2e", wireframe: true, transparent: true, opacity: 0.9, toneMapped: false }),
+    () => new THREE.MeshBasicMaterial({ color: ACCENT, wireframe: true, transparent: true, opacity: 0.9, toneMapped: false }),
     [],
   );
+  useAccentMat(coreHot);
 
   useFrame((state) => {
     const t = state.clock.elapsedTime;
