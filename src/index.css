@@ -254,7 +254,7 @@ html.is-ready .reveal { animation: rise 0.95s var(--d, 0s) cubic-bezier(0.2, 0.7
 .lnk:hover { color: var(--hot); border-color: var(--hot); }
 
 /* toolbox notes */
-.notes { position: absolute; left: var(--pad); top: clamp(215px, 33vh, 290px); width: min(310px, 26vw); list-style: none; margin: 0; padding: 0; display: grid; gap: 1.15rem; }
+.notes { position: absolute; left: var(--pad); top: calc(clamp(84px, 12vh, 118px) + 200px); width: min(310px, 26vw); list-style: none; margin: 0; padding: 0; display: grid; gap: 1.15rem; }
 .notes::before { content: ""; position: absolute; inset: -20px -30px -20px calc(var(--pad) * -1); background: linear-gradient(90deg, rgba(7, 8, 11, 0.78) 60%, rgba(7, 8, 11, 0)); z-index: -1; pointer-events: none; }
 .notes span { color: var(--hot); }
 .notes b { color: var(--paper); font-weight: 500; margin-left: 0.5rem; }
