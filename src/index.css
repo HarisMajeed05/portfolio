@@ -439,7 +439,7 @@ html.has-ret input { cursor: text !important; }
 .cap-btns .btn { padding: 0.7rem 0.95rem; }
 
 /* picked tool */
-.picked { margin-top: 1.8rem; max-width: min(380px, 80vw); padding: 0.8rem 1rem; background: rgba(7, 8, 11, 0.84); border: 1px solid var(--line); backdrop-filter: blur(6px); font-size: 0.62rem; }
+.picked { margin-top: 1rem; max-width: min(380px, 80vw); padding: 0.8rem 1rem; background: rgba(7, 8, 11, 0.84); border: 1px solid var(--line); backdrop-filter: blur(6px); font-size: 0.62rem; }
 .picked p { margin: 0 0 0.4rem; display: flex; flex-wrap: wrap; gap: 0.8rem; align-items: baseline; }
 .picked p:last-child { margin-bottom: 0; }
 .picked b { color: var(--hot); font-weight: 500; font-size: 0.74rem; }
@@ -487,7 +487,7 @@ html.has-ret input { cursor: text !important; }
 .story-nav button:hover { color: var(--hot); }
 
 /* lab notes */
-.lab { list-style: none; margin: 1.6rem 0 0; padding: 0; display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.lab { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); }
 .lab li { padding: 1.4rem 1.4rem 1.2rem; background: #0a0c11; }
 .lab-tag { margin: 0; color: var(--hot); }
 .lab h3 { margin: 0.5rem 0 0.7rem; font-family: var(--serif); font-weight: 400; font-size: clamp(1.6rem, 2.6vw, 2.2rem); line-height: 1.02; }
