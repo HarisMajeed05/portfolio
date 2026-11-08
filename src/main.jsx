@@ -26,7 +26,11 @@ function hasWebGL() {
 
 // ?view=plain, or a browser with no WebGL, gets the light page and never
 // downloads three.js
-const plain = new URLSearchParams(location.search).get("view") === "plain" || !hasWebGL();
+// Search engines and link previews get the plain view: the same content as one
+// fast page they can actually see, instead of a loader in front of a 3D scene.
+// Speed tests like Lighthouse still get the full 3D site.
+const crawler = /googlebot|google-inspectiontool|bingbot|duckduckbot|yandex|baiduspider|applebot|linkedinbot|twitterbot|facebookexternalhit|slurp/i.test(navigator.userAgent);
+const plain = new URLSearchParams(location.search).get("view") === "plain" || crawler || !hasWebGL();
 
 // saved accent and ?lens= links apply before anything renders
 initAccent();
