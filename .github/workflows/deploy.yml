@@ -27,6 +27,10 @@ jobs:
 
       - run: npm ci
       - run: npm run build
+        # optional, set under Settings > Secrets and variables > Actions > Variables
+        env:
+          VITE_FORM_URL: ${{ vars.FORM_URL }}
+          VITE_GOATCOUNTER: ${{ vars.GOATCOUNTER }}
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

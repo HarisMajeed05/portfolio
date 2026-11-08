@@ -7,8 +7,8 @@ export const ME = {
   org: "MLBench",
   place: "Lahore, Pakistan",
   email: "harismajeed0501@gmail.com",
-  // a Formspree endpoint like https://formspree.io/f/abcd1234 turns on the
-  // message form in the contact chapter. Left empty the form stays hidden.
+  // a Formspree endpoint like https://formspree.io/f/abcd1234 turns on the message
+  // form in the contact chapter. It comes from the FORM_URL repo variable at build time.
   form: import.meta.env.VITE_FORM_URL || "",
   github: "https://github.com/HarisMajeed05",
   linkedin: "https://www.linkedin.com/in/harismajeedraja",
@@ -454,7 +454,7 @@ export const LAB = [
 
 // Shown under the hero buttons
 export const STATUS = [
-  { k: "Now", t: "RF-DETR document fields and DINOv2 rice grading at MLBench" },
+  { k: "Now", t: "Computer vision, document AI and RAG systems for MLBench clients" },
   { k: "Open to", t: "AI and computer vision roles, graduate research" },
 ];
 

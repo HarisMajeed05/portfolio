@@ -38,6 +38,12 @@ function Count({ s }) {
   return <b ref={ref} />;
 }
 
+// my name assembles letter by letter, the one kinetic moment on the page
+const Chars = ({ text, from }) =>
+  [...text].map((c, i) => (
+    <span key={i} className="c" style={{ "--c": from + i }}>{c}</span>
+  ));
+
 export function Hero() {
   const lens = useLens();
   return (
@@ -47,10 +53,10 @@ export function Hero() {
           <p className="mono eyebrow reveal" style={{ "--d": "0.1s" }}>
             <i className="dot" /> AI Engineer at {ME.org} <span className="sep">/</span> {ME.place}
           </p>
-          <h1 className="display">
-            <span className="reveal" style={{ "--d": "0.2s" }}>Haris</span>
-            <span className="reveal" style={{ "--d": "0.32s" }}>
-              Majeed <em>Raja</em>
+          <h1 className="display kinetic" aria-label="Haris Majeed Raja">
+            <span className="line" aria-hidden="true"><Chars text="Haris" from={0} /></span>
+            <span className="line" aria-hidden="true">
+              <Chars text="Majeed" from={5} /> <em><Chars text="Raja" from={11} /></em>
             </span>
           </h1>
           <p className="lede reveal" style={{ "--d": "0.5s" }} key={lens.id}>

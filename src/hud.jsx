@@ -45,11 +45,12 @@ export function Loader() {
     };
     const tick = () => {
       const t = (performance.now() - t0) / 1000;
-      const target = go && t > 1.3 ? 100 : Math.min(92, 92 * (1 - Math.exp(-t * 0.8)));
-      shown += (target - shown) * 0.1;
+      // short on purpose: the page is usable as soon as the scene is, never more than 3.5s
+      const target = go && t > 0.6 ? 100 : Math.min(92, 92 * (1 - Math.exp(-t * 1.4)));
+      shown += (target - shown) * 0.16;
       if (num.current) num.current.textContent = String(Math.round(shown)).padStart(3, "0");
       if (bar.current) bar.current.style.transform = `scaleX(${shown / 100})`;
-      if (shown > 99.4 || t > 9) return finish();
+      if (shown > 99.4 || t > 3.5) return finish();
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);

@@ -71,6 +71,12 @@ em { font-style: italic; color: var(--hot); }
 .timeline { height: 700svh; }
 .work { height: 1000svh; }
 .stack { height: 300svh; }
+/* phones scroll less per chapter, the whole flight was over twenty screens long */
+@media (max-width: 760px) {
+  .timeline { height: 440svh; }
+  .work { height: 620svh; }
+  .stack { height: 200svh; }
+}
 .stick { position: sticky; top: 0; height: 100svh; overflow: hidden; }
 
 .panel {
@@ -541,4 +547,18 @@ html.has-ret input { cursor: text !important; }
 }
 @media (prefers-reduced-motion: reduce) {
   .pop { transition: none; }
+}
+
+/* ---------- hero name, letter by letter ---------- */
+.display.kinetic .line { display: block; overflow: hidden; padding-bottom: 0.08em; margin-bottom: -0.08em; }
+.display.kinetic .c { display: inline-block; transform: translateY(112%); }
+html.is-ready .display.kinetic .c { animation: char-in 1.15s cubic-bezier(0.2, 0.7, 0, 1) both; animation-delay: calc(0.2s + var(--c) * 40ms); }
+@keyframes char-in { from { transform: translateY(112%) rotate(7deg); } to { transform: none; } }
+
+/* ---------- headings lean a little with scroll speed ---------- */
+.display, .h2 { transform: skewY(calc(var(--vel, 0) * -2.4deg)); transform-origin: 0 50%; will-change: transform; }
+
+@media (prefers-reduced-motion: reduce) {
+  .display.kinetic .c { transform: none; animation: none !important; }
+  .display, .h2 { transform: none; }
 }

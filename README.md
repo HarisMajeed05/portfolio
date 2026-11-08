@@ -4,6 +4,36 @@ Live: https://harismajeed05.github.io/portfolio/
 
 One full screen WebGL scene sits behind the page. Scrolling flies the camera forward through six chapters: intro, brief, career tunnel, project ring, toolbox and contact. The page text is plain DOM on top, so it stays selectable and readable.
 
+## Live site features
+
+- **Installable and offline.** A web app manifest and a small service worker (`public/sw.js`). Visitors can add the site to their home screen, repeat visits load from cache, and the whole site still opens with no connection. Pages are network first, so a new deploy shows up straight away.
+- **SEO and sharing.** Canonical URL, description, Open Graph and Twitter cards, schema.org `Person` data, a `<noscript>` summary, `sitemap.xml` and a styled `404.html`.
+- **Contact form** (optional). Messages from the site go to my inbox through Formspree.
+- **Analytics** (optional). GoatCounter: visit counts with no cookies and no personal data, plus events for opened case studies, résumé downloads, email clicks and outbound GitHub and LinkedIn links.
+- **Light on weak devices.** three.js loads in its own chunk after the text. The scene renders at full rate only while something moves and drops to 12 to 30 fps when idle (about 95% fewer draw calls), and stops while a full screen panel covers it on a phone. Quality tiers start from the device's memory and CPU cores; the lightest drops post-processing.
+
+### Switching on the form and analytics
+
+Both are read at build time from repository variables, so nothing secret lives in the code.
+
+1. Make a free form at formspree.io and copy its endpoint, like `https://formspree.io/f/abcd1234`.
+2. Make a free site at goatcounter.com and note its code, for `harismajeed.goatcounter.com` the code is `harismajeed`.
+3. On GitHub: Settings → Secrets and variables → Actions → Variables. Add `FORM_URL` and `GOATCOUNTER` with those values.
+4. Push, or rerun the deploy workflow. The form button appears in the contact chapter, and visits show on the GoatCounter dashboard.
+
+Leave either variable out and that feature simply stays off.
+
+### Search
+
+Add the site to Google Search Console (URL prefix `https://harismajeed05.github.io/portfolio/`) and submit `sitemap.xml`. A `robots.txt` can only live at the root of the github.io domain, so it isn't part of this repo.
+
+## What changed in this version
+
+- The particle portrait is now built from a clean cut-out of my photo (`public/me.webp`), so it follows my real outline instead of a hand-drawn shape, and its depth is kept shallow so my face keeps its proportions when it tilts. It still flies together on load, parts around the pointer, bursts on click, scans, and folds into the sphere when you scroll. A band of rows now glitches sideways for a moment every few seconds.
+- Quality tiers pick themselves from the device (memory, CPU cores, touch) and the performance monitor keeps tuning live. The lightest tier drops post-processing, renders below native resolution and uses fewer particles and streaks. `?quality=low` or `?quality=high` pins a tier.
+- Phones scroll about a third less, and the loader is capped at 3.5 seconds.
+- My name assembles letter by letter, and headings lean slightly with scroll speed.
+
 ## What is in it
 
 - Particle portrait with a scanline. It parts around the pointer and bursts apart when you click or tap it, then pulls itself back together.

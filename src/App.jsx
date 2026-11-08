@@ -1,4 +1,4 @@
-import World from "./scene/World";
+import { Suspense, lazy } from "react";
 import { Loader, Hud } from "./hud";
 import { Hero, Brief, Timeline, Work, Stack, Contact } from "./sections";
 import Archive from "./archive";
@@ -7,10 +7,15 @@ import Palette from "./palette";
 import Compose from "./compose";
 import { Cursor } from "./fx";
 
+// three.js is the heaviest part, so it loads in its own chunk after the text is up
+const World = lazy(() => import("./scene/World"));
+
 export default function App() {
   return (
     <>
-      <World />
+      <Suspense fallback={null}>
+        <World />
+      </Suspense>
       <div className="scrim" aria-hidden="true" />
       <main>
         <Hero />

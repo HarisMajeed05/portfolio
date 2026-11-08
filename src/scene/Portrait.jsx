@@ -6,20 +6,13 @@ import { Bracket, Tag, lineMaterial, useAccentMat } from "./parts";
 import { ACCENT, A } from "../theme";
 import { sfx } from "../sound";
 
-const SRC = import.meta.env.BASE_URL + "haris.jpg";
+// my photo, cut out of its background, same size and framing as the original
+const SRC = import.meta.env.BASE_URL + "me.webp";
 const IMG_W = 768;
 const IMG_H = 1024;
 // portrait size in world units, 3:4 like the photo
 const W = 5.0;
 const H = (W * IMG_H) / IMG_W;
-
-// Rough outline of me in the photo (pixel coords), used to drop the blurry
-// background so only the figure turns into particles.
-const OUTLINE = [
-  [272, 215], [285, 150], [330, 128], [395, 126], [445, 150], [466, 215], [447, 300], [436, 350],
-  [482, 385], [545, 425], [600, 505], [636, 700], [634, 860], [612, 1024], [180, 1024], [148, 860],
-  [148, 700], [188, 520], [222, 452], [300, 372], [282, 300],
-];
 
 function boxBlur(src, w, h, r) {
   const tmp = new Float32Array(src.length);
@@ -63,27 +56,10 @@ function buildCloud(img, cols, rows) {
   ctx.drawImage(img, 0, 0, cols, rows);
   const px = ctx.getImageData(0, 0, cols, rows).data;
 
-  const mc = document.createElement("canvas");
-  mc.width = cols;
-  mc.height = rows;
-  const mx = mc.getContext("2d", { willReadFrequently: true });
-  mx.fillStyle = "#000";
-  mx.fillRect(0, 0, cols, rows);
-  mx.fillStyle = "#fff";
-  mx.beginPath();
-  OUTLINE.forEach(([x, y], i) => {
-    const X = (x / IMG_W) * cols;
-    const Y = (y / IMG_H) * rows;
-    if (i) mx.lineTo(X, Y);
-    else mx.moveTo(X, Y);
-  });
-  mx.closePath();
-  mx.fill();
-  const md = mx.getImageData(0, 0, cols, rows).data;
+  // the mask is the cut-out's own alpha, so the particles follow my real outline
   let mask = new Float32Array(cols * rows);
-  for (let i = 0; i < mask.length; i++) mask[i] = md[i * 4] / 255;
-  const r = Math.max(2, Math.round(cols * 0.022));
-  mask = boxBlur(boxBlur(mask, cols, rows, r), cols, rows, r);
+  for (let i = 0; i < mask.length; i++) mask[i] = px[i * 4 + 3] / 255;
+  mask = boxBlur(mask, cols, rows, 1);
 
   const pos = [];
   const sph = [];
@@ -95,7 +71,7 @@ function buildCloud(img, cols, rows) {
   let total = 0;
   for (let j = 0; j < rows; j++) {
     for (let i = 0; i < cols; i++) {
-      if (mask[j * cols + i] * (1 - smooth(0.84, 1.0, j / rows)) >= 0.06) total++;
+      if (mask[j * cols + i] * (1 - smooth(0.84, 1.0, j / rows)) >= 0.35) total++;
     }
   }
 
@@ -105,7 +81,7 @@ function buildCloud(img, cols, rows) {
       let m = mask[idx];
       // fade out the cut-off at the bottom of the photo
       m *= 1 - smooth(0.84, 1.0, j / rows);
-      if (m < 0.06) continue;
+      if (m < 0.35) continue;
       const u = (i + 0.5 + (rand() - 0.5) * 0.9) / cols;
       const v = (j + 0.5 + (rand() - 0.5) * 0.9) / rows;
       const rr = px[idx * 4];
@@ -114,7 +90,8 @@ function buildCloud(img, cols, rows) {
       const lum = (0.2126 * rr + 0.7152 * gg + 0.0722 * bb) / 255;
       // fake depth: brighter and more central pixels sit closer to the camera
       const bulge = Math.exp(-(((u - 0.5) / 0.4) ** 2) - (((v - 0.42) / 0.6) ** 2));
-      const z = (lum * 0.7 + bulge * 0.7 - 0.5) * 0.9;
+      // kept shallow and mostly from the centre, so tilting never bends my face out of shape
+      const z = (bulge * 0.6 + lum * 0.16 - 0.38) * 0.9;
       pos.push((u - 0.5) * W, (0.5 - v) * H, z);
 
       // every point also gets a slot on an even globe, so the portrait can fold into a sphere
@@ -136,7 +113,7 @@ function buildCloud(img, cols, rows) {
       };
       col.push(tone(rr) + 0.03, tone(gg) + 0.045, tone(bb) + 0.075);
       rnd.push(rand(), rand());
-      alp.push(m);
+      alp.push(Math.min(1, (m - 0.35) / 0.4 + 0.25));
     }
   }
   return {
@@ -152,7 +129,7 @@ function buildCloud(img, cols, rows) {
 
 const VERT = /* glsl */ `
   uniform float uTime, uResolve, uMorph, uPR, uSize, uFade, uSpin, uScan, uScanOn;
-  uniform float uVel, uBurst, uBurstR;
+  uniform float uVel, uBurst, uBurstR, uGlitch, uGlitchY;
   uniform vec3 uPointer, uBurstAt;
   attribute vec3 aSphere, aScatter, aColor;
   attribute vec2 aRand;
@@ -178,6 +155,12 @@ const VERT = /* glsl */ `
     p += t * vec3(sin(uTime*.8 + seed*40.), cos(uTime*.7 + seed*23.), sin(uTime*.6 + seed*13.)) * 1.1;
     p.z += sin(uTime*.9 + position.x*1.7 + position.y*1.3) * .035 * (1. - m);
     p = mix(aScatter, p, r);
+
+    // every few seconds a band of rows slips sideways, like a frame glitching
+    float row = floor(position.y * 9.);
+    float gb = step(abs(position.y - uGlitchY), .5) * uGlitch * (1. - m) * r;
+    p.x += (fract(sin(row * 78.233) * 43758.5453) - .5) * 1.1 * gb;
+    p.z += gb * .25;
 
     // the pointer pushes the dust away, harder and swirlier the faster it moves
     vec2 d = p.xy - uPointer.xy;
@@ -245,7 +228,7 @@ function Box({ px, label, matRef, tagRef, below }) {
 
 // `end` is the second copy that closes the page: same cloud, resolves again
 // when the camera arrives at the contact chapter.
-export default function Portrait({ end = false, z = 0, narrow }) {
+export default function Portrait({ end = false, z = 0, narrow, q = 2 }) {
   const img = useLoader(THREE.ImageLoader, SRC);
   const size = useThree((s) => s.size);
   const group = useRef();
@@ -257,8 +240,12 @@ export default function Portrait({ end = false, z = 0, narrow }) {
   // pointer state for the scatter: where it was, how fast it moves, the last click
   const ptr = useRef({ moved: false, x: 0, y: 0, vel: 0, burstAt: -9, nx: 0, ny: 0, fresh: false });
   const seen = useRef(A.v);
+  const born = useRef(-1);
 
-  const cloud = useMemo(() => buildCloud(img, light ? 120 : 200, light ? 160 : 267), [img, light]);
+  // fewer points on phones and weak GPUs
+  // points are cheap, so the portrait stays dense everywhere, phones and the lightest tier thin it a little
+  const [cols, rows] = q === 0 || light ? [160, 214] : [210, 280];
+  const cloud = useMemo(() => buildCloud(img, cols, rows), [img, cols, rows]);
 
   const material = useMemo(
     () =>
@@ -283,6 +270,8 @@ export default function Portrait({ end = false, z = 0, narrow }) {
           uBurst: { value: 0 },
           uBurstR: { value: 0 },
           uBurstAt: { value: new THREE.Vector3(99, 99, 0) },
+          uGlitch: { value: 0 },
+          uGlitchY: { value: 0 },
           uAccent: { value: new THREE.Color(ACCENT) },
         },
       }),
@@ -316,11 +305,16 @@ export default function Portrait({ end = false, z = 0, narrow }) {
     const g = group.current;
     uniforms.uTime.value = t;
     uniforms.uPR.value = state.gl.getPixelRatio();
-    uniforms.uSize.value = 2.8 * Math.min(1.5, Math.max(0.62, size.height / 900)) * (narrow ? 0.85 : 1);
+    // fewer points get bigger ones, so the figure always reads as a solid picture
+    uniforms.uSize.value = 2.8 * (210 / cols) * Math.min(1.5, Math.max(0.62, size.height / 900)) * (narrow ? 0.85 : 1);
     uniforms.uSpin.value = t * 0.22;
     // one pass every few seconds, top to bottom, then a pause
     const ph = (t * 0.2) % 1.7;
     uniforms.uScan.value = ph < 1 ? H / 2 - ph * H : -99;
+    // the glitch: 0.35s every 8s, at a different height each time
+    const gp = (t + 4) % 8;
+    uniforms.uGlitch.value = S.reduced || gp > 0.35 ? 0 : Math.sin((Math.PI * gp) / 0.35);
+    uniforms.uGlitchY.value = Math.sin(Math.floor((t + 4) / 8) * 12.9898) * H * 0.32;
 
     let resolve;
     let morph = 0;
@@ -330,7 +324,10 @@ export default function Portrait({ end = false, z = 0, narrow }) {
       visible = S.c > 3.9;
     } else {
       // starts when the loader lifts, so you watch the face assemble
-      resolve = S.t0 < 0 ? 0 : clamp01((performance.now() / 1000 - S.t0 - 0.15) / 3.4);
+      // if the 3D arrives after the loader lifted, the fly-in starts when it arrives
+      if (born.current < 0) born.current = performance.now() / 1000;
+      const from = Math.max(S.t0, born.current);
+      resolve = S.t0 < 0 ? 0 : clamp01((performance.now() / 1000 - from - 0.15) / 3.4);
       morph = smooth(0.05, 0.95, S.c);
       visible = S.c < 2.3;
     }
@@ -406,8 +403,8 @@ export default function Portrait({ end = false, z = 0, narrow }) {
         </bufferGeometry>
         <primitive object={material} attach="material" />
       </points>
-      <Box px={[150, 126, 636, 1012]} label="person 0.98" matRef={personMat} tagRef={personTag} />
-      <Box px={[268, 126, 466, 398]} label="face 0.99" matRef={faceMat} tagRef={faceTag} below />
+      <Box px={[150, 126, 636, 1012]} label="person" matRef={personMat} tagRef={personTag} />
+      <Box px={[268, 126, 466, 398]} label="face" matRef={faceMat} tagRef={faceTag} below />
     </group>
   );
 }

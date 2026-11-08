@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { ME } from "./data";
 import Sheet from "./sheet";
+import { track } from "./track";
 
 export const openCompose = () => window.dispatchEvent(new Event("compose-open"));
 
-// A small message form that posts to Formspree. It only exists when ME.form
-// holds an endpoint, otherwise nothing renders and email stays the way in.
+// A small message form that posts to Formspree. It only exists when the FORM_URL
+// repo variable holds an endpoint, otherwise nothing renders and email stays the way in.
 export default function Compose() {
   const [open, setOpen] = useState(false);
   const [state, setState] = useState("idle");
@@ -31,7 +32,10 @@ export default function Compose() {
     try {
       const r = await fetch(ME.form, { method: "POST", headers: { Accept: "application/json" }, body: new FormData(f) });
       setState(r.ok ? "sent" : "error");
-      if (r.ok) f.reset();
+      if (r.ok) {
+        f.reset();
+        track("message-sent");
+      }
     } catch {
       setState("error");
     }

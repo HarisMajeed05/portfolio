@@ -34,7 +34,7 @@ const FRAG = /* glsl */ `
 
 // Dust that fills the whole flight path. It stays put in the world, so you read
 // your own speed from it, and it stretches into streaks when you scroll fast.
-export default function Warp() {
+export default function Warp({ q = 2 }) {
   const { geometry, material } = useMemo(() => {
     const pos = new Float32Array(COUNT * 2 * 3);
     const end = new Float32Array(COUNT * 2);
@@ -81,6 +81,8 @@ export default function Warp() {
     uniforms.uStreak.value = clamp01(S.speed / 3000) * 13;
   });
 
+  // weaker devices draw fewer streaks from the same buffer
+  geometry.setDrawRange(0, (q === 0 ? 900 : q === 1 ? 1700 : COUNT) * 2);
   return (
     <lineSegments geometry={geometry} frustumCulled={false}>
       <primitive object={material} attach="material" />

@@ -77,6 +77,47 @@ function Ready() {
 
 const OFFSET = new THREE.Vector2(0, 0);
 
+// Full frame rate only while something moves: the intro, scrolling, the pointer,
+// a key. Otherwise the scene keeps breathing at a low rate, and it stops when a
+// full screen panel covers it on a phone. Saves battery and keeps weak GPUs cool.
+const IDLE_FPS = [12, 20, 30];
+function Pace({ q, onActive }) {
+  const setFrameloop = useThree((s) => s.setFrameloop);
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => {
+    let last = performance.now();
+    let active = true;
+    let tick = 0;
+    let raf;
+    const poke = () => (last = performance.now());
+    const evs = ["pointermove", "pointerdown", "wheel", "touchstart", "touchmove", "keydown", "scroll"];
+    evs.forEach((e) => addEventListener(e, poke, { passive: true }));
+    const loop = (now) => {
+      raf = requestAnimationFrame(loop);
+      const intro = S.t0 < 0 || now / 1000 - S.t0 < 4.5;
+      const busy = intro || now - last < 2500 || S.speed > 8 || Math.abs(S.focus - S.f) > 0.01;
+      if (busy !== active) {
+        active = busy;
+        setFrameloop(busy ? "always" : "demand");
+        onActive(busy);
+      }
+      if (busy) return;
+      const covered = document.documentElement.dataset.modal && matchMedia("(max-width: 760px)").matches;
+      if (covered) return;
+      if (now - tick >= 1000 / IDLE_FPS[q]) {
+        tick = now;
+        invalidate();
+      }
+    };
+    raf = requestAnimationFrame(loop);
+    return () => {
+      cancelAnimationFrame(raf);
+      evs.forEach((e) => removeEventListener(e, poke));
+    };
+  }, [q, setFrameloop, invalidate, onActive]);
+  return null;
+}
+
 // q is the quality tier from the performance monitor: 2 full, 1 lighter, 0 lightest
 function Scene({ q }) {
   const size = useThree((s) => s.size);
@@ -90,19 +131,22 @@ function Scene({ q }) {
       <Rig wide={wide} />
       <Aberrate ca={ca} />
       <Suspense fallback={null}>
-        <Warp />
-        <Portrait narrow={!wide} />
+        <Warp q={q} />
+        <Portrait narrow={!wide} q={q} />
         <Tunnel />
         <Gallery narrow={!wide} />
         <Orbits narrow={!wide} />
-        <Portrait end z={END_Z} narrow={!wide} />
+        <Portrait end z={END_Z} narrow={!wide} q={q} />
         <Ready />
       </Suspense>
-      <EffectComposer multisampling={coarse || q < 2 ? 0 : 4}>
-        <Bloom mipmapBlur intensity={0.75} luminanceThreshold={0.42} luminanceSmoothing={0.4} />
-        {q > 1 ? <ChromaticAberration ref={ca} offset={OFFSET} radialModulation modulationOffset={0.35} /> : <></>}
-        <Vignette eskil={false} offset={0.22} darkness={0.55} />
-      </EffectComposer>
+      {/* the lightest tier skips post-processing, it is the most expensive part on weak GPUs */}
+      {q > 0 && (
+        <EffectComposer multisampling={coarse || q < 2 ? 0 : 4}>
+          <Bloom mipmapBlur intensity={0.75} luminanceThreshold={0.42} luminanceSmoothing={0.4} />
+          {q > 1 ? <ChromaticAberration ref={ca} offset={OFFSET} radialModulation modulationOffset={0.35} /> : <></>}
+          <Vignette eskil={false} offset={0.22} darkness={0.55} />
+        </EffectComposer>
+      )}
     </>
   );
 }
@@ -125,18 +169,25 @@ export default function World() {
   const coarse = matchMedia("(pointer: coarse)").matches;
   // ?quality=high or ?quality=low pins the tier and turns the auto tuning off
   const pin = { high: 2, low: 0 }[new URLSearchParams(location.search).get("quality")];
-  const [q, setQ] = useState(pin ?? (coarse ? 1 : 2));
+  // start from what the device says about itself, then the monitor tunes it live
+  const mem = navigator.deviceMemory || 8;
+  const cores = navigator.hardwareConcurrency || 8;
+  const guess = mem <= 2 || cores <= 2 ? 0 : coarse || mem < 4 || cores < 4 ? 1 : 2;
+  const [q, setQ] = useState(pin ?? guess);
+  // the monitor only runs while the scene is at full rate, idle frames would look slow to it
+  const [busy, setBusy] = useState(true);
   return (
     <Guard>
       <Canvas
         className="world"
-        dpr={q === 2 ? [1, 1.75] : q === 1 ? [1, 1.25] : 1}
+        dpr={q === 2 ? [1, 1.75] : q === 1 ? [1, 1.25] : 0.85}
         camera={{ fov: 42, near: 0.1, far: 520, position: [0, 0, 10] }}
-        gl={{ antialias: false, powerPreference: "high-performance", alpha: false }}
+        gl={{ antialias: false, powerPreference: q === 0 ? "default" : "high-performance", alpha: false }}
         eventSource={document.getElementById("root")}
         eventPrefix="client"
       >
-        {pin === undefined && (
+        <Pace q={q} onActive={setBusy} />
+        {pin === undefined && busy && (
           <PerformanceMonitor
             flipflops={2}
             onDecline={() => setQ((v) => Math.max(0, v - 1))}

@@ -12,6 +12,7 @@ import { initScroll } from "./scroll";
 import { initNav } from "./nav";
 import { initAccent } from "./theme";
 import { initLens } from "./lens";
+import { initTrack } from "./track";
 
 function hasWebGL() {
   try {
@@ -30,6 +31,24 @@ const plain = new URLSearchParams(location.search).get("view") === "plain" || !h
 // saved accent and ?lens= links apply before anything renders
 initAccent();
 initLens();
+initTrack();
+
+// installable, and quick on repeat visits. Only on the built site, never in dev.
+if ("serviceWorker" in navigator && import.meta.env.PROD) {
+  addEventListener("load", () => {
+    navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).then(async () => {
+      const reg = await navigator.serviceWorker.ready;
+      // hand over everything this first visit downloaded, once now and once more
+      // after the late arrivals (fonts, the 3D chunk) have landed
+      const send = () => {
+        const urls = performance.getEntriesByType("resource").map((r) => r.name).filter((u) => u.startsWith(location.origin));
+        reg.active?.postMessage({ type: "precache", urls });
+      };
+      send();
+      setTimeout(send, 8000);
+    }).catch(() => {});
+  });
+}
 
 (plain ? import("./plain") : import("./App")).then(({ default: Root }) => {
   createRoot(document.getElementById("root")).render(

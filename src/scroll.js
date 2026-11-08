@@ -17,6 +17,7 @@ export const S = {
   camZ: 10,
   tops: [],
   heights: [],
+  max: 0,
   reduced: false,
   // seconds (performance.now based) when the loader lifted, drives the intro
   t0: -1,
@@ -33,12 +34,16 @@ export const S = {
 let lenis = null;
 let lastY = 0;
 let lastT = 0;
+let lastVel = 0;
 
 function measure() {
   const els = document.querySelectorAll("[data-chapter]");
   S.vh = window.innerHeight;
   S.tops = [...els].map((el) => el.getBoundingClientRect().top + window.scrollY);
   S.heights = [...els].map((el) => el.offsetHeight);
+  // the furthest the page can actually scroll, so the last chapter is always reachable
+  S.max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  lenis?.resize();
 }
 
 function solve() {
@@ -46,9 +51,16 @@ function solve() {
   if (!n) return;
   const y = S.y;
   for (let i = 0; i < n; i++) S.u[i] = 0;
-  const start = (i) => S.tops[i];
-  const settled = (i) => S.tops[i] + Math.max(0, S.heights[i] - S.vh);
+  // zoom, rounding or a late layout change can leave the last chapter a little
+  // below the bottom of the page. Cap it there so scrolling to the end lands on it.
+  const start = (i) => (i === n - 1 ? Math.min(S.tops[i], S.max) : S.tops[i]);
+  const settled = (i) => Math.min(S.tops[i] + Math.max(0, S.heights[i] - S.vh), i < n - 1 ? start(i + 1) - 1 : Infinity);
 
+  if (y >= S.max - 1 && S.max > 0) {
+    S.c = n - 1;
+    S.u[n - 1] = 1;
+    return;
+  }
   if (y <= start(0)) {
     S.c = 0;
     return;
@@ -93,6 +105,12 @@ export function initScroll() {
       lastT = t;
       S.speed += (Math.abs(S.y - lastY) / dt - S.speed) * (1 - Math.exp(-dt * 7));
       lastY = S.y;
+      // headings read this to lean a little while you scroll fast
+      const vel = Math.min(1, S.speed / 4200);
+      if (Math.abs(vel - lastVel) > 0.01) {
+        lastVel = vel;
+        document.documentElement.style.setProperty("--vel", vel.toFixed(3));
+      }
       requestAnimationFrame(raf);
     };
     requestAnimationFrame(raf);
@@ -103,6 +121,8 @@ export function initScroll() {
     onScroll(window.scrollY);
   };
   window.addEventListener("resize", onResize);
+  // any change in the page's height (fonts, the GitHub line, a lens switch) re-measures
+  if ("ResizeObserver" in window) new ResizeObserver(() => onResize()).observe(document.body);
   // fonts and images change section heights, so measure again once they land
   window.addEventListener("load", onResize);
   document.fonts?.ready.then(onResize);
