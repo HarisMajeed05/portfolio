@@ -210,7 +210,7 @@ export function Hud() {
         <u ref={prog} />
       </div>
       <header className="brand">
-        <button className="brand-btn" onClick={() => goTo(0)} aria-label="Back to the start">
+        <button className="brand-btn" onClick={() => goTo(0)} aria-label={`HMR ${ME.name}, back to the start`}>
           <span className="brand-mark">HMR</span>
           <span className="brand-name">{ME.name}</span>
         </button>

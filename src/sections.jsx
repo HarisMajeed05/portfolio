@@ -343,12 +343,19 @@ function CopyMail() {
 }
 
 function Pulse() {
-  const d = usePulse();
+  // the contact chapter is the last one, so S.c reaching it means someone scrolled all the way
+  const [near, setNear] = useState(false);
+  useEffect(() => {
+    if (near) return;
+    const t = setInterval(() => S.c >= 4 && setNear(true), 1000);
+    return () => clearInterval(t);
+  }, [near]);
+  const d = usePulse(near);
   if (!d) return null;
   return (
     <p className="pulse mono">
       <b>
-        <i className="dot" /> GitHub, live
+        <i className="dot" /> GitHub
       </b>
       <span>{d.repos} public repos</span>
       {d.last && <span>Last push {ago(d.last)}</span>}

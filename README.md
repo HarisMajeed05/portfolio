@@ -7,7 +7,8 @@ One full screen WebGL scene sits behind the page. Scrolling flies the camera for
 ## Live site features
 
 - **Installable and offline.** A web app manifest and a small service worker (`public/sw.js`). Visitors can add the site to their home screen, repeat visits load from cache, and the whole site still opens with no connection. Pages are network first, so a new deploy shows up straight away.
-- **SEO and sharing.** Canonical URL, description, Open Graph and Twitter cards, schema.org `Person` data, a `<noscript>` summary, `sitemap.xml` and a styled `404.html`.
+- **Search first.** The build (`vite.config.js`) renders the plain page straight into `index.html`, so every word is in the HTML before any JavaScript runs. It also writes a static page per project under `/work/<id>/` with its own title, description and case study, a `sitemap.xml` (with my photo for image search), and an `llms.txt` summary for AI search tools. Structured data: `ProfilePage`, `Person`, `WebSite` and a project list on the home page, `SoftwareSourceCode` and breadcrumbs on each project page. Plus canonical URLs, Open Graph and Twitter cards and a `noindex` 404 page.
+- **Fast first paint.** The first-paint CSS is inlined, fonts are Latin only and the two main ones are preloaded. A tiny script in the head picks the version before anything paints: search engines, `?view=plain` and browsers that would draw WebGL in software (no graphics chip) keep the plain page and run almost no JavaScript. Everyone else gets the 3D site on top. `?view=3d` forces it. GitHub numbers are fetched at build time, so visitors never call the GitHub API on load.
 - **Contact form** (optional). Messages from the site go to my inbox through Formspree.
 - **Analytics** (optional). GoatCounter: visit counts with no cookies and no personal data, plus events for opened case studies, résumé downloads, email clicks and outbound GitHub and LinkedIn links.
 - **Light on weak devices.** three.js loads in its own chunk after the text. The scene renders at full rate only while something moves and drops to 12 to 30 fps when idle (about 95% fewer draw calls), and stops while a full screen panel covers it on a phone. Quality tiers start from the device's memory and CPU cores; the lightest drops post-processing.
@@ -25,7 +26,7 @@ Leave either variable out and that feature simply stays off.
 
 ### Search
 
-Add the site to Google Search Console (URL prefix `https://harismajeed05.github.io/portfolio/`) and submit `sitemap.xml`. A `robots.txt` can only live at the root of the github.io domain, so it isn't part of this repo.
+Add the site to Google Search Console (URL prefix `https://harismajeed05.github.io/portfolio/`) and submit `sitemap.xml`. It lists the home page and every project page, and rebuilds itself on each deploy. A `robots.txt` can only live at the root of the github.io domain, so it isn't part of this repo.
 
 ## What changed in this version
 
@@ -112,8 +113,13 @@ npm run lint
 ## Structure
 
 ```
-public/            photo, favicon, social image, resume PDFs
+index.html         head tags and the script that picks plain or 3D
+vite.config.js     build: prerender, project pages, sitemap, llms.txt
+public/            photos, favicon, social image, resume PDFs, service worker
 src/
+  main.jsx         entry: loads the 3D site only when this visitor gets it
+  base.css         first-paint styles, inlined into the HTML
+  index.css        3D site styles
   data.js          all the content (edit this first)
   sections.jsx     DOM panels for each chapter
   hud.jsx          loader, progress bar, chapter rail, top right tools
@@ -124,7 +130,7 @@ src/
   lens.js          Read me as (General, AI, Research, Software)
   pick.js          tool picked on the orbit
   sound.js         synthesized sound
-  pulse.js         GitHub API numbers
+  pulse.js         GitHub numbers (build-time snapshot)
   sheet.jsx        shared drawer and popup shell
   archive.jsx      archive drawer
   story.jsx        case studies and lab notes
@@ -143,7 +149,7 @@ src/
 
 ## Editing content
 
-Everything you read on the site lives in `src/data.js`: profile, stats, roles, projects, the archive list, toolbox words, résumé links, the lenses, the case studies (`STORIES`) and the lab notes (`LAB`). Add a project by adding an object to `PROJECTS`, then add an entry to `STORIES`, keyed by the same id, so it gets a case study. Its `art` field picks the generated card artwork (see `src/scene/cards.js`), and its id for deep links is made from the title. Add a repo to the archive with one `R(...)` line in `ARCHIVE`. Swap the photo by replacing `public/haris.jpg`, and the résumés by replacing the PDFs in `public/resumes/`.
+Everything you read on the site lives in `src/data.js`: profile, stats, roles, projects, the archive list, toolbox words, résumé links, the lenses, the case studies (`STORIES`) and the lab notes (`LAB`). Add a project by adding an object to `PROJECTS`, then add an entry to `STORIES`, keyed by the same id, so it gets a case study. Its `art` field picks the generated card artwork (see `src/scene/cards.js`), and its id for deep links is made from the title. Add a repo to the archive with one `R(...)` line in `ARCHIVE`. Swap the photo by replacing `public/haris.jpg` (480x640, used by search engines) and `public/haris-sm.webp` (210x280, shown on the plain page), the 3D portrait by replacing `public/me.webp`, and the résumés by replacing the PDFs in `public/resumes/`.
 
 ## Deploy
 

@@ -34,6 +34,8 @@ export function setAccent(id) {
   // a remembered choice is a nice-to-have, storage can be blocked
   try {
     localStorage.setItem(KEY, id);
+    // the head script in index.html reads this one, so the colour is right on the first paint
+    localStorage.setItem("hmr-hot", a.hex);
   } catch {
     /* ignore */
   }

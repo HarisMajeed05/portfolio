@@ -10,8 +10,8 @@ export default function Archive() {
   const [open, setOpen] = useState(false);
   const [f, setF] = useState("all");
   const [q, setQ] = useState("");
-  const pulse = usePulse();
-
+  const pulse = usePulse(open);
+  
   useEffect(() => {
     const o = () => setOpen(true);
     const c = () => setOpen(false);

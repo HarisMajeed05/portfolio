@@ -1,7 +1,7 @@
 // Makes the site installable and quick on repeat visits.
 // Pages: network first, so a new deploy shows up straight away, cache when offline.
 // Built files have hashed names and never change, so those come from the cache.
-const CACHE = "hmr-v1";
+const CACHE = "hmr-v2";
 const BASE = new URL("./", self.location).pathname;
 
 self.addEventListener("install", (e) => {
@@ -32,10 +32,13 @@ self.addEventListener("fetch", (e) => {
       fetch(req)
         .then((res) => {
           const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(BASE, copy));
+          // each page under its own address, without the ?view= part
+          caches.open(CACHE).then((c) => c.put(url.origin + url.pathname, copy));
           return res;
         })
-        .catch(() => caches.match(BASE, { ignoreVary: true })),
+        .catch(() =>
+          caches.match(url.origin + url.pathname, { ignoreVary: true }).then((hit) => hit || caches.match(BASE, { ignoreVary: true })),
+        ),
     );
     return;
   }

@@ -2,57 +2,88 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#07080b" />
-    <title>Haris Majeed Raja | AI Engineer</title>
-    <meta name="description" content="Haris Majeed Raja, AI Engineer at MLBench in Lahore. Computer vision, LLMs and RAG systems for clients, research on deepfakes that explain themselves, and models trained from scratch." />
+    <title>Haris Majeed Raja | AI Engineer, Computer Vision and LLMs</title>
+    <meta name="description" content="Haris Majeed Raja is an AI Engineer at MLBench in Lahore, Pakistan, building computer vision, document AI, LLM and RAG systems. Projects, research and résumé." />
     <meta name="author" content="Haris Majeed Raja" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <link rel="canonical" href="https://harismajeed05.github.io/portfolio/" />
-    <link rel="manifest" href="%BASE_URL%manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
     <link rel="apple-touch-icon" href="%BASE_URL%apple-touch-icon.png" />
+    <link rel="manifest" href="%BASE_URL%manifest.webmanifest" />
     <link rel="sitemap" type="application/xml" href="%BASE_URL%sitemap.xml" />
-    <link rel="preconnect" href="https://api.github.com" crossorigin />
+    <link rel="me" href="https://github.com/HarisMajeed05" />
+    <link rel="me" href="https://www.linkedin.com/in/harismajeedraja" />
+    <!--fonts-->
 
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content="profile" />
+    <meta property="og:site_name" content="Haris Majeed Raja" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:url" content="https://harismajeed05.github.io/portfolio/" />
     <meta property="og:title" content="Haris Majeed Raja | AI Engineer" />
     <meta property="og:description" content="I build AI that sees, reads and ships. Computer vision, LLMs and RAG, shown as a 3D flight you scroll through." />
-    <meta property="og:image" content="https://harismajeed05.github.io/portfolio/og-image-v2.png" />
+    <meta property="og:image" content="https://harismajeed05.github.io/portfolio/og.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Haris Majeed Raja, AI Engineer" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Haris Majeed Raja | AI Engineer" />
     <meta name="twitter:description" content="I build AI that sees, reads and ships. Computer vision, LLMs and RAG, shown as a 3D flight you scroll through." />
-    <meta name="twitter:image" content="https://harismajeed05.github.io/portfolio/og-image-v2.png" />
+    <meta name="twitter:image" content="https://harismajeed05.github.io/portfolio/og.jpg" />
+    <meta name="twitter:image:alt" content="Haris Majeed Raja, AI Engineer" />
+    <!--ld-->
 
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "Person",
-        "name": "Haris Majeed Raja",
-        "jobTitle": "AI Engineer",
-        "worksFor": { "@type": "Organization", "name": "MLBench" },
-        "alumniOf": { "@type": "CollegeOrUniversity", "name": "Information Technology University, Lahore" },
-        "address": { "@type": "PostalAddress", "addressLocality": "Lahore", "addressCountry": "PK" },
-        "email": "mailto:harismajeed0501@gmail.com",
-        "url": "https://harismajeed05.github.io/portfolio/",
-        "image": "https://harismajeed05.github.io/portfolio/og-image-v2.png",
-        "knowsAbout": ["Computer Vision", "Object Detection", "Large Language Models", "Retrieval-Augmented Generation", "Deepfake Detection", "PyTorch"],
-        "sameAs": ["https://github.com/HarisMajeed05", "https://www.linkedin.com/in/harismajeedraja"]
-      }
+    <script>
+      // I pick the version before anything paints. Search engines, ?view=plain and
+      // browsers that draw WebGL in software (no graphics chip, so the 3D scene would
+      // freeze them) keep the fast plain page. ?view=3d forces the 3D site.
+      (function () {
+        var v = new URLSearchParams(location.search).get("view");
+        var gl = null;
+        var r = "";
+        try {
+          var c = document.createElement("canvas");
+          // failIfMajorPerformanceCaveat: the browser itself says no when WebGL would run in software,
+          // unless someone asked for the 3D site anyway
+          gl = c.getContext("webgl", { failIfMajorPerformanceCaveat: v !== "3d", antialias: false, depth: false });
+          if (gl) {
+            r = String(gl.getParameter(gl.RENDERER));
+            var e = gl.getExtension("WEBGL_debug_renderer_info");
+            if (e) r += " " + gl.getParameter(e.UNMASKED_RENDERER_WEBGL);
+            var k = gl.getExtension("WEBGL_lose_context");
+            if (k) k.loseContext();
+          }
+        } catch (x) {}
+        var bot = /bot|crawl|spider|slurp|preview|facebookexternalhit|google-inspectiontool/i.test(navigator.userAgent);
+        var soft = /swiftshader|llvmpipe|softpipe|software|basic render/i.test(r);
+        var three = !!gl && (v === "3d" || (v !== "plain" && !bot && !soft));
+        document.documentElement.className = three ? "x3d" : "plain";
+        try {
+          var hot = localStorage.getItem("hmr-hot");
+          if (hot) document.documentElement.style.setProperty("--hot", hot);
+        } catch (x) {}
+      })();
     </script>
   </head>
   <body>
-    <div id="root"></div>
-    <noscript>
-      <main style="padding:24px;color:#ece8df;background:#07080b;font-family:system-ui;line-height:1.6">
-        <h1>Haris Majeed Raja, AI Engineer</h1>
-        <p>AI Engineer at MLBench in Lahore. Computer vision, LLMs and RAG systems, deepfake detection research, and models trained from scratch.</p>
-        <p>Email harismajeed0501@gmail.com · <a href="https://github.com/HarisMajeed05" style="color:#ff5b2e">GitHub</a> · <a href="https://www.linkedin.com/in/harismajeedraja" style="color:#ff5b2e">LinkedIn</a></p>
-      </main>
-    </noscript>
+    <div id="root">
+      <div class="loader pre" aria-hidden="true">
+        <div class="loader-in">
+          <span class="mono">Loading weights</span>
+          <b class="loader-num">000</b>
+          <i class="loader-bar"><u></u></i>
+          <ul class="boot mono">
+            <li><span>Fonts</span><i></i><b>...</b></li>
+            <li><span>Portrait</span><i></i><b>...</b></li>
+            <li><span>3D scene</span><i></i><b>...</b></li>
+          </ul>
+        </div>
+      </div>
+      <!--plain-->
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

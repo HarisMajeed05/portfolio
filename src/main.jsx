@@ -1,40 +1,13 @@
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import "@fontsource/instrument-serif/400.css";
-import "@fontsource/instrument-serif/400-italic.css";
-import "@fontsource/geist-sans/400.css";
-import "@fontsource/geist-sans/500.css";
-import "@fontsource/geist-sans/600.css";
-import "@fontsource/geist-mono/400.css";
-import "@fontsource/geist-mono/500.css";
-import "./index.css";
-import { initScroll } from "./scroll";
-import { initNav } from "./nav";
-import { initAccent } from "./theme";
-import { initLens } from "./lens";
+import "./base.css";
 import { initTrack } from "./track";
 
-function hasWebGL() {
-  try {
-    const gl = document.createElement("canvas").getContext("webgl2") || document.createElement("canvas").getContext("webgl");
-    gl?.getExtension("WEBGL_lose_context")?.loseContext();
-    return !!gl;
-  } catch {
-    return false;
-  }
-}
+// The build puts the whole plain page into index.html, and a tiny script in the
+// head has already picked this visitor's version (html.x3d or html.plain).
+// Crawlers, browsers without a GPU and ?view=plain keep the plain page as it is,
+// so they run almost no JavaScript. Everyone else gets the 3D site on top.
+const three = document.documentElement.classList.contains("x3d");
+const q = new URLSearchParams(location.search);
 
-// ?view=plain, or a browser with no WebGL, gets the light page and never
-// downloads three.js
-// Search engines and link previews get the plain view: the same content as one
-// fast page they can actually see, instead of a loader in front of a 3D scene.
-// Speed tests like Lighthouse still get the full 3D site.
-const crawler = /googlebot|google-inspectiontool|bingbot|duckduckbot|yandex|baiduspider|applebot|linkedinbot|twitterbot|facebookexternalhit|slurp/i.test(navigator.userAgent);
-const plain = new URLSearchParams(location.search).get("view") === "plain" || crawler || !hasWebGL();
-
-// saved accent and ?lens= links apply before anything renders
-initAccent();
-initLens();
 initTrack();
 
 // installable, and quick on repeat visits. Only on the built site, never in dev.
@@ -54,17 +27,11 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
   });
 }
 
-(plain ? import("./plain") : import("./App")).then(({ default: Root }) => {
-  createRoot(document.getElementById("root")).render(
-    <StrictMode>
-      <Root />
-    </StrictMode>,
-  );
-  if (!plain) {
-    // sections exist after the first render, measure them then
-    requestAnimationFrame(() => {
-      initScroll();
-      initNav();
-    });
-  }
-});
+if (three) import("./App").then((m) => m.mount());
+else {
+  // the plain page only needs React when a link asks for another lens order,
+  // or in dev where nothing is prerendered
+  if (q.has("lens") || !document.querySelector(".pl")) import("./plain").then((m) => m.mount());
+  // a saved accent is already applied by the head script, only a linked one needs this
+  if (q.has("accent")) import("./theme").then((m) => m.initAccent());
+}

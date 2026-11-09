@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { ME } from "./data";
 
-// Live numbers straight from the GitHub API, so the page never goes stale.
-// If GitHub is slow, blocked or rate limited, nothing shows and nothing breaks.
+// GitHub numbers. The build bakes in a snapshot, so the page shows them with no
+// network call at all. I only ask the API for fresher ones once a visitor actually
+// reaches the contact chapter or opens the archive. If GitHub is slow, blocked or
+// rate limited, the snapshot stays and nothing breaks.
 const USER = ME.github.split("/").pop();
 const KEY = "hmr-pulse";
 const TTL = 15 * 60 * 1000;
 
-let data = null;
+let data = import.meta.env.PULSE || null;
 let started = false;
 const listeners = new Set();
 
@@ -55,16 +57,19 @@ async function load() {
   }
 }
 
-export function usePulse() {
+// want: the caller is on screen, so a refresh is worth one API call
+export function usePulse(want) {
   const [d, setD] = useState(data);
   useEffect(() => {
     listeners.add(setD);
-    if (!started) {
+    return () => listeners.delete(setD);
+  }, []);
+  useEffect(() => {
+    if (want && !started) {
       started = true;
       load();
     }
-    return () => listeners.delete(setD);
-  }, []);
+  }, [want]);
   return d;
 }
 

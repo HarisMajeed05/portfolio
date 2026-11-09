@@ -31,6 +31,8 @@ jobs:
         env:
           VITE_FORM_URL: ${{ vars.FORM_URL }}
           VITE_GOATCOUNTER: ${{ vars.GOATCOUNTER }}
+          # lets the build read my GitHub numbers without hitting the rate limit
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
