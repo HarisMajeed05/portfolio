@@ -83,7 +83,8 @@ function prerender() {
         const { default: Plain } = await vs.ssrLoadModule("/src/plain.jsx");
         const data = await vs.ssrLoadModule("/src/data.js");
         const { ME, BRIEF, PROJECTS, LAB, ORBITS, RESUMES } = data;
-        const today = new Date().toISOString().slice(0, 10);
+        const now = new Date().toISOString(); // full date and time, Google rejects a bare date in dateModified
+        const today = now.slice(0, 10); // the sitemap is fine with just the day
         const workUrl = (p) => `${HOME}work/${p.id}/`;
 
         LAB.forEach((l) => PROJECTS.some((p) => p.id === l.project) || this.warn(`lab note ${l.id}: no project called ${l.project}`));
@@ -135,7 +136,7 @@ function prerender() {
                   isPartOf: { "@id": `${HOME}#website` },
                   mainEntity: { "@id": `${HOME}#person` },
                   primaryImageOfPage: { "@type": "ImageObject", url: `${HOME}haris.jpg`, width: 480, height: 640 },
-                  dateModified: today,
+                  dateModified: now,
                   hasPart: { "@id": `${HOME}#projects` },
                 },
                 person,
